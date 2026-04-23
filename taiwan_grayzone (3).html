@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Strait Monitoring Dashboard — Jan–Apr 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a18;font-size:14px;line-height:1.6}
+.page{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+.top-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:8px;padding-bottom:1.25rem;border-bottom:0.5px solid rgba(0,0,0,0.12)}
+.top-title{font-size:18px;font-weight:600;color:#1a1a18}
+.top-meta{font-size:12px;color:#5f5e5a;margin-top:4px}
+.conf-note{font-size:11px;color:#888780;margin-top:3px;font-style:italic}
+.top-date{font-size:12px;color:#888780;margin-top:4px}
+.sl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888780;margin-bottom:.75rem}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.month-tabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.mtab{font-size:12px;padding:5px 14px;border-radius:20px;border:0.5px solid rgba(0,0,0,0.2);background:transparent;cursor:pointer;color:#5f5e5a;transition:all .15s}
+.mtab:hover{background:rgba(0,0,0,0.05)}
+.mtab.active{background:#1a1a18;color:#fff;border-color:#1a1a18}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;color:#888780;font-weight:500;text-align:left;padding:7px 10px;border-bottom:0.5px solid rgba(0,0,0,0.1)}
+td{font-size:13px;padding:11px 10px;border-bottom:0.5px solid rgba(0,0,0,0.07);vertical-align:top;color:#1a1a18}
+tr:last-child td{border-bottom:none}
+tr.row:hover td{background:#f9f8f5;cursor:pointer}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:2px 9px;border-radius:4px}
+.s-low{background:#EAF3DE;color:#2d5a0e;border:0.5px solid #97C459}
+.s-mod{background:#FEF3E2;color:#7a4a06;border:0.5px solid #EF9F27}
+.s-high{background:#FDECEC;color:#8b1f1f;border:0.5px solid #F09595}
+.tc{font-size:13px;font-weight:500;white-space:nowrap}
+.tn{color:#C0392B}.tp{color:#2AB5A5}.tf{color:#888780}
+.bi{display:flex;gap:9px;font-size:13px;margin-bottom:.7rem;line-height:1.55;color:#2c2c2a}
+.bi:last-child{margin-bottom:0}
+.bd{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0;background:#1a1a18}
+.mo-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.mo-overlay.open{display:flex}
+.mo-box{background:#fff;border-radius:14px;border:0.5px solid rgba(0,0,0,0.1);padding:1.75rem;width:min(620px,92vw);max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
+.mo-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.1rem}
+.mo-title{font-size:15px;font-weight:600;color:#1a1a18}
+.mo-close{background:none;border:none;font-size:22px;cursor:pointer;color:#888780;line-height:1;padding:0 2px}
+.mo-close:hover{color:#1a1a18}
+.mo-meta{font-size:12px;color:#5f5e5a;margin-top:4px}
+.srow{padding:11px 0;border-bottom:0.5px solid rgba(0,0,0,0.08)}
+.srow:last-child{border-bottom:none}
+.srow-name{font-size:13px;font-weight:500;color:#1a1a18}
+.srow-obs{font-size:12px;color:#5f5e5a;margin-top:3px;line-height:1.55}
+.srow-src{font-size:11px;color:#aaa;margin-top:3px;font-style:italic}
+.sig-b{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:#E1F5EE;color:#0a5c3a;margin-top:4px;font-weight:500}
+.sig-w{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:#FEF3E2;color:#7a4a06;margin-top:4px;font-weight:500}
+.sig-e{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:#FDECEC;color:#8b1f1f;margin-top:4px;font-weight:500}
+.conf-pill{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:#f1efe9;color:#5f5e5a;margin-left:6px;border:0.5px solid rgba(0,0,0,0.1)}
+.fn{background:#fef9f0;border-left:3px solid #EF9F27;padding:9px 12px;border-radius:0 8px 8px 0;font-size:12px;color:#5f5e5a;margin-bottom:1.1rem;line-height:1.5}
+.src-block{background:#f5f4f0;border-radius:8px;padding:10px 13px;margin-top:13px;font-size:11px;color:#888780;line-height:1.6}
+.mo-summary{font-size:13px;color:#5f5e5a;margin-bottom:1rem;line-height:1.6;padding:10px 13px;background:#f9f8f5;border-radius:8px}
+.ftab{font-size:11px;padding:4px 12px;border-radius:20px;border:0.5px solid rgba(0,0,0,0.18);background:transparent;cursor:pointer;color:#5f5e5a;transition:all .15s;white-space:nowrap}
+.ftab:hover{background:rgba(0,0,0,0.05)}
+.ftab.active{background:#1a1a18;color:#fff;border-color:#1a1a18}
+.methodology-btn{font-size:11px;padding:4px 12px;border-radius:6px;border:0.5px solid rgba(27,58,92,0.4);background:transparent;cursor:pointer;color:#1B3A5C;transition:all .15s;margin-top:6px;display:inline-block;text-decoration:none}
+.methodology-btn:hover{background:#1B3A5C;color:#fff}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="top-bar">
+  <div>
+    <div class="top-title">Cross-Strait Monitoring Dashboard</div>
+    <div class="top-meta">Non-kinetic coercive activities — deviation from baseline &nbsp;·&nbsp; Jan–Apr 2026</div>
+  </div>
+  <div style="text-align:right">
+    <div class="top-date">Updated: Apr 23, 2026</div>
+    <button class="methodology-btn" onclick="openMethodology()">Methodology</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="sl">Monthly trend</div>
+  <div id="chart-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem"></div>
+  <div style="position:relative;height:210px;width:100%">
+    <canvas id="tlChart" role="img" aria-label="Monthly trend Jan–Apr 2026.">Trend scores across Jan–Apr 2026.</canvas>
+  </div>
+</div>
+
+<div class="month-tabs" id="month-tabs"></div>
+
+<div class="card">
+  <div class="sl">Monthly indicator tracker — <span id="active-label"></span></div>
+  <table>
+    <thead><tr>
+      <th style="width:27%">Indicator</th>
+      <th style="width:10%">Status</th>
+      <th style="width:20%">Trend</th>
+      <th>Summary</th>
+    </tr></thead>
+    <tbody id="ind-tbody"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="sl">Watchpoints — May 2026</div>
+  <div id="watchpoints"></div>
+</div>
+
+</div>
+
+<div class="mo-overlay" id="modal-overlay">
+  <div class="mo-box">
+    <div class="mo-hdr">
+      <div><div class="mo-title" id="modal-title"></div><div class="mo-meta" id="modal-meta"></div></div>
+      <button class="mo-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const MONTHS=['Jan 2026','Feb 2026','Mar 2026','Apr 2026'];
+
+const OVERALL=[
+  {t:-1,label:'−1 Disruptive'},
+  {t:0, label:'No change'},
+  {t:-1,label:'−1 Disruptive'},
+  {t:0, label:'No change'},
+];
+
+const WATCHPOINTS=[
+  'Trump-Xi summit (mid-May): post-summit arms announcement is the most likely PRC retaliation exercise trigger — watch for PLA exercise announcement within 2 weeks of summit conclusion. Any formalised arms sale delay or reduction in communiqué language would also move allied support status.',
+  'Shanghai airspace closure expires May 6: if PLA exercise is announced or conducted before or around this date, confirms the closure was pre-exercise staging — and would constitute the first confirmed multi-domain convergence signal of 2026 if accompanied by cognitive or economic escalation.',
+  'Defense budget: Legislative Yuan session continuing — US$2.4B defense procurement at immediate cancellation risk. Watch for cross-party agreement or further deadlock hardening ahead of November election positioning.',
+  'November 2026 election influence operations: KMT-PRC channel now formalised and AI data scraping on Taiwanese legislators confirmed — watch Doublethink Lab and IORG for first coordinated campaign launch targeting November local elections.',
+];
+
+const INDS=[
+  {id:'pol',name:'Political fragmentation',short:'Political fragmentation'},
+  {id:'eco',name:'Economic coercion',short:'Economic coercion'},
+  {id:'dip',name:'Diplomatic isolation',short:'Diplomatic isolation'},
+  {id:'mil',name:'Gray-zone military',short:'Gray-zone military'},
+  {id:'cog',name:'Cognitive warfare',short:'Cognitive warfare'},
+  {id:'all',name:'International support',short:'International support'},
+  {id:'str',name:'Strategic convergence',short:'Strategic convergence'},
+];
+
+const DATA={
+'Jan 2026':{
+  pol:{status:'Low',trend:-1,conf:'High',
+    summary:'Defense budget blocked 8+ times; KMT-TPP passed largest-ever budget cuts — first year-end deadline failure in LY history. Impeachment proceedings filed against Lai. Government grip on legislative agenda materially weakened.',
+    subs:[
+      {name:'Legislative gridlock',obs:'KMT-TPP blocked NT$1.25T special defense budget 8+ times. Legislature passed largest-ever budget cuts (~1/3 of government spending) — first year-end deadline failure in LY history.',sig:'e',src:'NPR Jan 22; The Diplomat Feb 17'},
+      {name:'Impeachment proceedings',obs:'KMT filed impeachment proceedings against President Lai — signals extreme executive-legislative confrontation even if widely assessed as unlikely to succeed.',sig:'e',src:'Foreign Policy Apr 10'},
+      {name:'KMT-PRC signalling',obs:'PRC state media praised "rational voices" in Taiwan for blocking "provocative" defense spending — openly framing KMT obstruction as aligned with Beijing\'s interests.',sig:'w',src:'Gemini political report'},
+      {name:'Protest / public signal',obs:'No major protests in January. Civic recall petitions gaining momentum but not yet at scale.',sig:'b',src:'Gemini political report'},
+    ]},
+  eco:{status:'Low',trend:0,conf:'High',
+    summary:'No new PRC economic coercion. ECFA petrochemical tariff suspension (since late 2023) is the elevated baseline. US-Taiwan tariff deal at 15% signed — modest positive. No trade bans, regulatory lawfare, or corporate targeting.',
+    subs:[
+      {name:'Trade restrictions',obs:'ECFA tariff suspension on 12 petrochemical products in place since late 2023 — elevated baseline, not a January event. No new restrictions.',sig:'b',src:'Gemini economic report'},
+      {name:'ECFA status',obs:'Tariff suspensions remain. Beijing warned of potential extension to textiles/machinery — rhetoric only, no action.',sig:'b',src:'Gemini economic report'},
+      {name:'US-Taiwan trade deal',obs:'US-Taiwan tariff deal signed Jan 2026, lowering tariffs from 20% to 15%. Modest reduction in trade dependency risk.',sig:'b',src:'The Diplomat Feb 17'},
+      {name:'Material impact',obs:'No new coercive measures. No trade disruption, corporate targeting, or regulatory lawfare enacted.',sig:'b',src:'Framework application'},
+    ]},
+  dip:{status:'Low',trend:0,conf:'High',
+    summary:'Taiwan holds 12 formal allies. WHO Executive Board exclusion is established baseline pattern. No new org exclusion, no severance, no downgrade confirmed in January.',
+    subs:[
+      {name:'Ally count',obs:'12 formal allies. No defection or severance in January.',sig:'b',src:'Open sources'},
+      {name:'WHO exclusion',obs:'Taiwan excluded from WHO Executive Board — consistent long-standing baseline exclusion pattern. Not a new development.',sig:'b',src:'Gemini diplomatic report'},
+      {name:'United Front operations',obs:'PRC-linked United Front operations targeting younger Pacific politicians to sway One China interpretations. Sub-official level, no confirmed impact on formal ties.',sig:'w',src:'Gemini diplomatic report'},
+      {name:'Org pressure',obs:'No new international organisation exclusion or formal tie downgrade in January.',sig:'b',src:'Open sources'},
+    ]},
+  mil:{status:'Moderate',trend:-1,conf:'High',
+    summary:'Maritime militia massing: ~1,400 vessels in coordinated 200-mile formation (Jan 11) causing cargo ships to alter course, following 2,000-vessel L-shaped formation (Dec 25). Timed to Justice Mission 2025. ADIZ sorties at/below post-Lai baseline.',
+    subs:[
+      {name:'Maritime militia formations',obs:'~1,400 Chinese fishing vessels in coordinated 200-mile rectangular formation Jan 11 near Taiwan shipping routes — cargo ships altered course. Preceded by 2,000-vessel L-shaped formation Dec 25 (290 miles). IngeniSPACE/Starboard confirmed. CSIS: consistent with government coordination, not normal fishing.',sig:'e',src:'Jerusalem Post Jan 21; Taipei Times Jan 29'},
+      {name:'ADIZ sorties vs baseline',obs:'~285 sorties — at/below post-May 2024 structural baseline of ~300/month. Seasonal winter decline. 12 balloon detections, 2 overflying Taiwan land territory.',sig:'b',src:'Gemini military report; ISW-AEI Feb 6'},
+      {name:'Justice Mission 2025 context',obs:'Dec 29–30 blockade exercise in reporting window. Militia formations timed to exercise — coordinated civilian maritime massing as blockade rehearsal component.',sig:'w',src:'ISW-AEI Jan 2'},
+      {name:'CCG Kinmen',obs:'4 CCG incursions — normalised ~4/month baseline. No escalation above established pattern.',sig:'b',src:'ISW-AEI Feb 6'},
+    ]},
+  cog:{status:'Moderate',trend:-1,conf:'High',
+    summary:'Confirmed above-baseline campaign post-Justice Mission 2025: 45,000 accounts active, cross-platform coordination within 48-hour windows confirmed, AI video delivery confirmed. Departure from structural baseline in timing and coordination.',
+    subs:[
+      {name:'CIB cluster activity',obs:'NSB confirmed 45,000 fake accounts active, spreading ~2.3M disinformation pieces. Timed to Justice Mission 2025 exercise context — above structural baseline.',sig:'e',src:'Taiwan NSB Jan 12; Gemini cognitive report'},
+      {name:'Cross-platform coordination',obs:'NSB observed simultaneous seeding across fake news sites and social media within 48-hour windows — confirmed coordination signature above structural baseline.',sig:'e',src:'Taiwan NSB; Gemini cognitive report'},
+      {name:'AI operations',obs:'Automated programs and AI tools used by PRC MPS to generate and deliver psychological attacks via video. Confirmed AI-generated content delivery at scale.',sig:'w',src:'Taiwan NSB; Cybernews Jan 12'},
+      {name:'Reported impact',obs:'NSB documents infrastructure and tactics. No confirmed polling evidence of material opinion shift. Volume metric, not yet confirmed impact metric.',sig:'w',src:'Framework application'},
+    ]},
+  all:{status:'Low',trend:0,conf:'High',
+    summary:'Allied posture solid. USS John Finn Taiwan Strait transit Jan 16–17. High-level EPPD dialogue with Pax Silica Declaration signed. $11B arms pipeline active. No allied activity spike approaching PRC retaliation threshold.',
+    subs:[
+      {name:'Military presence',obs:'USS John Finn + USNS Mary Sears Taiwan Strait transit Jan 16–17. First transit of 2026. Routine freedom of navigation — within baseline.',sig:'b',src:'Gemini allied report'},
+      {name:'Senior engagement',obs:'US Under Secretary Helberg led 6th US-Taiwan EPPD Jan 27. Joint Pax Silica Declaration on AI supply chain security signed.',sig:'b',src:'Gemini allied report'},
+      {name:'Arms sales',obs:'$11B FMS package (Dec 2025) in active pipeline. No new notifications. No announcement approaching PRC retaliation threshold.',sig:'b',src:'Gemini allied report'},
+      {name:'Provocation threshold',obs:'No allied activity spike. Routine transits and dialogue are baseline, not escalation triggers.',sig:'b',src:'Framework application'},
+    ]},
+  str:{status:'Low',trend:0,conf:'High',
+    summary:'No multi-domain escalation event. Militia massing significant but isolated — no simultaneous cognitive spike or economic coercion. No confirmed 7–14 day clustering across three or more domains.',
+    subs:[
+      {name:'Multi-domain spikes',obs:'Maritime militia massing significant but isolated. Cognitive above baseline but no simultaneous economic or diplomatic escalation. No confirmed 3-domain clustering within 7–14 day window.',sig:'b',src:'Synthesis'},
+      {name:'Election proximity',obs:'November 2026 local elections 10 months out. Early influence operation preparation plausibly beginning given NSB-confirmed historical lead times.',sig:'w',src:'ISW-AEI Jan 2'},
+      {name:'Policy triggers',obs:'No major policy trigger in January prompting coordinated PRC escalatory response across domains.',sig:'b',src:'Open sources'},
+      {name:'Tempo',obs:'No acceleration in gray-zone incident intervals across domains.',sig:'b',src:'Open sources'},
+    ]},
+},
+'Feb 2026':{
+  pol:{status:'Low',trend:0,conf:'High',
+    summary:'Budget impasse slightly thawed — cross-party consensus Feb 24 to move to plenary March 6. Underlying fragmentation unchanged. KMT-TPP leveraging defense delays against trade concessions. Stable signal.',
+    subs:[
+      {name:'Legislative gridlock',obs:'Cross-party consensus Feb 24 to move Cabinet proposal to plenary March 6 — first thaw. KMT-TPP continued leveraging delays against US-Taiwan trade deal concessions. Net: no change from January.',sig:'w',src:'Gemini political report'},
+      {name:'Impeachment proceedings',obs:'Ongoing but going nowhere. No procedural advancement in February.',sig:'w',src:'Gemini political report'},
+      {name:'KMT-PRC signalling',obs:'PRC maintaining "open door" for opposition dialogue. Minor back-channel signals continuing.',sig:'w',src:'Gemini political report'},
+      {name:'Protest activity',obs:'Small demonstrations outside LY — low hundreds. Partisan rather than mass movement.',sig:'b',src:'Gemini political report'},
+    ]},
+  eco:{status:'Low',trend:0,conf:'High',
+    summary:'No new coercive trade measures. MOFCOM Announcements 11/12 created extraterritorial enforcement framework — legal scaffolding emerging but no Taiwanese firms materially targeted. No trade bans or regulatory lawfare enacted.',
+    subs:[
+      {name:'Trade restrictions',obs:'No new import bans or ECFA escalation. Baseline petrochemical suspension unchanged.',sig:'b',src:'Open sources'},
+      {name:'MOFCOM Announcements 11/12',obs:'Feb 24: first extraterritorial enforcement targeting supply chain partners. Control list for dual-use exports. No confirmed Taiwanese firms named. Legal architecture, not yet operational coercion.',sig:'w',src:'Gemini economic report'},
+      {name:'Tourism / corporate targeting',obs:'PRC group travel ban continues as baseline. No new Taiwanese corporate targeting.',sig:'b',src:'Baseline'},
+      {name:'Material impact',obs:'No reported trade disruption or material economic coercion in February.',sig:'b',src:'Framework application'},
+    ]},
+  dip:{status:'Low',trend:0,conf:'High',
+    summary:"Taiwan holds 12 formal allies with no defections or severances in February. PRC pre-defection grooming of Paraguay intensified with a trade delegation visiting Asunción and investment offers to Paraguayan officials — the most active ally-poaching effort among Taiwan's remaining partners. No new international organisation exclusion events.",
+    subs:[
+      {name:'Ally count',obs:'12 formal allies. No defection or severance in February.',sig:'b',src:'Open sources'},
+      {name:'Paraguay pressure',obs:'PRC officials offered agricultural technology transfers and healthcare investments to Paraguayan officials. PRC trade delegation visited Asunción. Active pre-defection grooming — no formal switch yet.',sig:'w',src:'Gemini diplomatic report'},
+      {name:'South Korea naming',obs:'South Korea E-Arrival System labelled Taiwanese nationals as "China (Taiwan)." Taipei protested. Reflects South Korea\'s long-standing One China posture, not a new diplomatic downgrade.',sig:'w',src:'Gemini diplomatic report'},
+      {name:'Org exclusion',obs:'No new international organisation exclusion events in February.',sig:'b',src:'Open sources'},
+    ]},
+  mil:{status:'Low',trend:0,conf:'High',
+    summary:'~315 sorties — marginally above post-Lai baseline of ~300/month but within normal monthly variation. Night-sortie shift and CCG increase are watch signals. No material departure from baseline warranting a trend change.',
+    subs:[
+      {name:'ADIZ sorties vs baseline',obs:'~315 sorties — marginally above post-May 2024 structural baseline of ~300/month. Within normal monthly variation. Not a meaningful departure from baseline.',sig:'b',src:'Gemini military report'},
+      {name:'Median line crossings',obs:'~135 crossings — +45% vs Feb 2025 but consistent with post-Lai normalization trend established across 2024–2025. No new spike above that trend.',sig:'w',src:'Gemini military report'},
+      {name:'Night-time sortie shift',obs:'PLA shifting to night-time sorties — tactical pattern shift testing ROCAF reaction times. Watch signal for future trend but not yet a baseline departure.',sig:'w',src:'Gemini military report'},
+      {name:'CCG Kinmen',obs:'5 CCG incursions — marginally above normalised ~4/month baseline. Watch signal. Scheduled patrol pattern continuing to develop.',sig:'w',src:'Gemini military report'},
+    ]},
+  cog:{status:'Moderate',trend:0,conf:'Moderate',
+    summary:'New campaign type — social issue exploitation. Confirmed deepfakes and AI video. Operation partially disrupted by Taipei police arrests in late February. New tactics but disruption limits demonstrated material impact.',
+    subs:[
+      {name:'New campaign type',obs:'Spamouflage network shifted to social-issue exploitation: coordinated immigrant instability narratives, AI-generated government corruption videos.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Deepfake operations',obs:'Confirmed deepfake video and voice recordings for psychological warfare and data collection.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Operation disruption',obs:'Taipei police arrested suspects linked to AI-assisted operations in late February — operation partially detected and disrupted. Limits demonstrated impact.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Reported impact',obs:'No confirmed polling evidence of material opinion shift. New tactics without confirmed material impact = no trend change.',sig:'w',src:'Framework application'},
+    ]},
+  all:{status:'Low',trend:0,conf:'High',
+    summary:'Trump\'s Feb 4 Xi consultation broke Six Assurances norm and $14B package held. Per framework baseline, US strategic ambiguity is Low/no change. Arms hold reduces near-term PRC retaliation trigger risk. Japan Yonaguni is a regional deterrence signal.',
+    subs:[
+      {name:'Six Assurances / arms hold',obs:'Trump consulted Xi on Taiwan arms Feb 4 — first since 1982. $14B package held. Per framework: US strategic ambiguity is the baseline, and arms hold reduces near-term PRC retaliation trigger. Scored as context, not a trend-moving allied activity spike.',sig:'w',src:'The Hill Feb 22; GTI Apr'},
+      {name:'Japan Yonaguni',obs:'Japan PM Takaichi government commissioned urgent NDS update post-Feb 8 election win. Permanent Type-03 missiles planned on Yonaguni — regional deterrence signal below immediate PRC retaliation threshold.',sig:'b',src:'Gemini allied report'},
+      {name:'Quad statement',obs:'Quad Foreign Ministers issued joint statement of "serious concern" over unilateral Indo-Pacific status quo changes.',sig:'b',src:'Gemini allied report'},
+      {name:'Provocation threshold',obs:'No allied activity spike approaching PRC retaliation threshold. Arms hold actually reduces near-term trigger risk.',sig:'b',src:'Framework application'},
+    ]},
+  str:{status:'Low',trend:0,conf:'High',
+    summary:'No domain showing meaningful deterioration above baseline. Military within variation, cognitive disrupted, diplomatic stable, economic stable. No convergence signal.',
+    subs:[
+      {name:'Multi-domain spikes',obs:'Military within baseline variation. Cognitive active but disrupted. Diplomatic stable. Economic stable. No concurrent domain escalation.',sig:'b',src:'Synthesis'},
+      {name:'Election proximity',obs:'November 2026 elections 9 months out. KMT-TPP electoral cooperation formalising. Early influence operation conditions building.',sig:'w',src:'Gemini political report'},
+      {name:'Policy triggers',obs:'Trump-Xi arms dynamic is Washington-driven, not a PRC gray-zone escalation trigger.',sig:'b',src:'Framework application'},
+      {name:'Tempo',obs:'No meaningful acceleration in gray-zone incident intervals across domains.',sig:'b',src:'Synthesis'},
+    ]},
+},
+'Mar 2026':{
+  pol:{status:'Low',trend:-1,conf:'High',
+    summary:'Budget hearings failed across three competing proposals. Ko Wen-je sentenced — strengthened KMT-TPP "siege mentality," making cross-party defense consensus nearly impossible. Defense LOA deadline missed.',
+    subs:[
+      {name:'Legislative gridlock',obs:'Joint ND/Finance Committee hearing (Mar 23–26) failed to reach consensus across three versions (NT$1.25T, NT$800B–1T, NT$400B). Defense Minister warned failure to sign US LOAs by March 15 would cause contract cancellations — deadline missed.',sig:'e',src:'Gemini political report; Taiwan Business Topics Apr'},
+      {name:'Ko Wen-je sentencing',obs:'TPP founder sentenced for corruption in March. KMT-TPP interpreted as DPP "political persecution" — strengthened opposition bloc solidarity and created siege mentality making cross-party defense cooperation nearly impossible.',sig:'e',src:'Gemini political report'},
+      {name:'KMT-TPP electoral alignment',obs:'KMT and TPP agreed to cooperate in November 2026 local elections following Ko sentencing — opposition bloc consolidating against DPP.',sig:'w',src:'Gemini political report'},
+      {name:'KMT-PRC proximity',obs:'PRC TAO Director Song Tao issued formal invitation March 30 for KMT leadership to visit Beijing — first formal PRC-KMT engagement invitation on record for this cycle.',sig:'w',src:'Gemini political report'},
+    ]},
+  eco:{status:'Low',trend:0,conf:'High',
+    summary:'No new material coercive measures. Two Sessions regulatory language shifted to "crack down" — rhetoric, no new actions. Agricultural customs delays reported but no confirmed material trade impact.',
+    subs:[
+      {name:'Regulatory language',obs:'Two Sessions work report shifted language from "oppose" to "crack down" on Taiwan independence. More aggressive future stance signalled but no new measures enacted.',sig:'w',src:'Gemini economic report'},
+      {name:'Agricultural customs delays',obs:'Enhanced inspections reported for Taiwanese agricultural products from DPP-aligned local governments. Selective enforcement signal — no confirmed material trade disruption.',sig:'w',src:'Gemini economic report'},
+      {name:'Semiconductor talent poaching',obs:'15th Five-Year Plan subsidies targeting Taiwanese semiconductor talent and AI firms. Long-term structural concern, not immediate coercion.',sig:'w',src:'Gemini economic report'},
+      {name:'Material impact',obs:'No new trade bans, sanctions, or regulatory lawfare enacted. No confirmed material disruption.',sig:'b',src:'Framework application'},
+    ]},
+  dip:{status:'Low',trend:-1,conf:'High',
+    summary:'WTO Ministerial exclusion confirmed (Cameroon, Mar 26–29) — first concrete new blocking of Taiwan\'s participation in an international organisation this period. Distinct from long-standing WHO baseline exclusion.',
+    subs:[
+      {name:'WTO Ministerial exclusion',obs:'Taiwan skipped WTO 14th Ministerial Conference in Yaoundé after Cameroon insisted on "Province of China" labelling. First such WTO exclusion this period. Taiwan MOFA condemned Cameroon Mar 20.',sig:'e',src:'ISW-AEI Apr 3; Gemini diplomatic report'},
+      {name:'Belize and Guatemala',obs:'PRC-linked business chambers offering debt restructuring programs to Belize and Guatemala — expanding active ally-poaching beyond Paraguay.',sig:'w',src:'Gemini diplomatic report'},
+      {name:'Ally count',obs:'12 formal allies. No defection or severance in March.',sig:'b',src:'Open sources'},
+      {name:'Corporate naming',obs:'Southeast Asian logistics firms updating "Country of Origin" to "Taiwan, China" following PRC customs regulatory threats.',sig:'w',src:'Gemini diplomatic report'},
+    ]},
+  mil:{status:'Low',trend:-1,conf:'High',
+    summary:'~340 sorties — above post-Lai baseline of ~300/month. 158 median line crossings (+52% vs Mar 2025). CCG Kinmen confirmed shift to scheduled patrols (6 incursions, +300% vs Mar 2025). WZ-7 UAV integration confirmed.',
+    subs:[
+      {name:'ADIZ sorties vs baseline',obs:'~340 sorties — above post-May 2024 structural baseline of ~300/month. +28% vs March 2025. Highest monthly total of Jan–Apr 2026. Peak single-day: 61 sorties March 27.',sig:'w',src:'Gemini military report'},
+      {name:'Median line crossings',obs:'~158 crossings — +52% vs March 2025. Accelerating normalization of median line violations.',sig:'w',src:'Gemini military report'},
+      {name:'CCG Kinmen — scheduled patrols',obs:'6 CCG incursions (Mar 16, 17, 20, 23 + Pratas Mar 18-19). Confirmed shift from occasional entries to scheduled patrols systematically eroding Taiwanese jurisdictional claims. +300% vs March 2025.',sig:'e',src:'Gemini military report; ISW-AEI Apr 3'},
+      {name:'WZ-7 UAV integration',obs:'WZ-7 high-altitude UAV confirmed in March sorties — unmanned systems integration alongside manned aircraft. Tactical evolution in operational posture.',sig:'w',src:'Gemini military report'},
+    ]},
+  cog:{status:'Moderate',trend:0,conf:'Moderate',
+    summary:'Coordinated 10-point plan amplification: state media-to-bot coordination within 24 hours confirmed. High-profile Taiwanese political figures repeating PRC rhetoric — local proxy amplification active. No new spike above prior months.',
+    subs:[
+      {name:'10-point plan amplification',obs:'High coordination between PRC state media and social media bot networks on 10-point plan within 24 hours of release. Confirmed coordinated state-social media operation.',sig:'w',src:'Gemini cognitive report; IORG'},
+      {name:'Local proxy amplification',obs:'High-profile Taiwanese political figures and media repeating PRC rhetoric following Beijing meetings. Local proxy amplification — higher-credibility impact sub-indicator per framework.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Jurisdictional erasure narratives',obs:'Coordinated narratives claiming Kinmen/Matsu waters are PRC territory — directly supporting CCG jurisdictional erosion in maritime domain.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Reported impact',obs:'No confirmed polling evidence of material opinion shift. Proxy amplification has higher credibility potential but no measured breakthrough.',sig:'w',src:'Framework application'},
+    ]},
+  all:{status:'Low',trend:0,conf:'High',
+    summary:'Arms package on hold, summit delayed. Senate delegation (Shaheen-Curtis) visited Taipei March 30 reaffirming support. Japan Yonaguni progressing. No allied activity spike approaching PRC retaliation threshold.',
+    subs:[
+      {name:'Arms package on hold',obs:'$14B package on hold pending summit. Arms hold reduces near-term PRC retaliation trigger. All coordination complete.',sig:'w',src:'Taipei Times Mar 14'},
+      {name:'Senate delegation',obs:'Bipartisan SFRC delegation (Shaheen-Curtis) visited Taipei March 30–31. Routine congressional engagement — within baseline.',sig:'b',src:'Gemini allied report'},
+      {name:'Japan Yonaguni',obs:'Permanent Type-03 missile deployment on Yonaguni proceeding. Regional deterrence signal below immediate PRC retaliation threshold.',sig:'b',src:'Gemini allied report'},
+      {name:'Provocation threshold',obs:'No allied activity spike that would prompt PRC retaliation. Arms hold continues to reduce near-term trigger risk.',sig:'b',src:'Framework application'},
+    ]},
+  str:{status:'Low',trend:-1,conf:'High',
+    summary:'Three domains showing concurrent signals (military above baseline, diplomatic WTO exclusion, cognitive coordinated amplification) but not confirmed simultaneous escalation within a 7–14 day window. KMT-Xi meeting imminent as policy trigger.',
+    subs:[
+      {name:'Multi-domain signals',obs:'Military above baseline. Diplomatic WTO exclusion. Cognitive coordinated amplification. Three domains active in March — but not confirmed simultaneous spike within 7–14 day window. Approaching watch threshold.',sig:'w',src:'Synthesis'},
+      {name:'Election proximity',obs:'November 2026 elections 8 months out. KMT-TPP electoral cooperation agreement reached. KMT-Xi meeting invitation accepted.',sig:'w',src:'Gemini political; synthesis'},
+      {name:'KMT-Xi policy trigger',obs:'PRC TAO formal invitation issued March 30. Meeting materialised April 10. Post-meeting PRC signalling historically follows within 2–4 weeks.',sig:'w',src:'Historical pattern'},
+      {name:'Tempo',obs:'Military tempo above baseline. CCG shifted to scheduled patrols. Multiple domains showing directional movement.',sig:'w',src:'Synthesis'},
+    ]},
+},
+'Apr 2026':{
+  pol:{status:'Low',trend:0,conf:'High',
+    summary:'Impeachment proceedings no longer active — KMT focus shifted to Beijing engagement. Budget still stalled, US$2.4B at immediate cancellation risk. KMT-Xi meeting generates partisan rhetoric but no new institutional action.',
+    subs:[
+      {name:'Impeachment',obs:'Impeachment proceedings no longer active in April. KMT\'s political energy shifted to Beijing engagement and November election positioning.',sig:'b',src:'Gemini political report'},
+      {name:'Defense budget',obs:'Still stalled as of April 23. US$2.4B portion at immediate cancellation risk. Same dynamic as March — no new development.',sig:'w',src:'Gemini political report'},
+      {name:'KMT-Xi meeting',obs:'Cheng Li-wun met Xi April 10. Suggested slowing Taiwan\'s military build-up. DPP accused KMT of echoing CCP themes. Partisan rhetoric — no new vote, protest, or institutional action.',sig:'w',src:'Gemini political report; Taiwan News Apr'},
+      {name:'Protest activity',obs:'Heightened online rhetoric but no large-scale street protests. No mass movement.',sig:'b',src:'Gemini political report'},
+    ]},
+  eco:{status:'Low',trend:0,conf:'High',
+    summary:'PRC Decrees 834/835 created "Malicious Entity List" — first concrete regulatory lawfare tool targeting supply chain compliance. No Taiwanese firms confirmed on list yet but architecture is operational. Bifurcated inducement/coercion strategy now explicit.',
+    subs:[
+      {name:'Decrees 834 and 835',obs:'Apr 7 and 13: PRC created "Malicious Entity List" for firms interrupting "normal transactions" or complying with foreign sanctions. First explicit legal scaffolding for supply chain regulatory lawfare. No Taiwanese firms confirmed on list yet.',sig:'w',src:'Gemini economic report'},
+      {name:'Inducement package',obs:'10-point plan: resumed Shanghai/Fujian travel, flight normalisation, Fujian-Kinmen infrastructure, preferential agricultural access. Taiwan MAC: "political deal" bypassing government authority.',sig:'w',src:'Gemini economic report; Focus Taiwan Apr 16'},
+      {name:'Bifurcated strategy',obs:'PRC rewarding KMT/opposition-aligned sectors while deploying new legal coercion tools against DPP-aligned or internationally compliant firms. Designed to deepen domestic fragmentation via economic means.',sig:'w',src:'Gemini economic report'},
+      {name:'Material impact',obs:'No confirmed material trade disruption. Decrees are legal architecture — coercive potential not yet realised. −1 reflects structural escalation in coercive toolkit.',sig:'w',src:'Framework application'},
+    ]},
+  dip:{status:'Low',trend:-1,conf:'High',
+    summary:'President Lai\'s diplomatic transit aircraft denied overflight rights by Seychelles, Mauritius, and Madagascar — direct operational impact on presidential travel. New tactic: airspace denial via PRC pressure on small states.',
+    subs:[
+      {name:'Presidential overflight denial',obs:'Seychelles, Mauritius, and Madagascar revoked overflight permissions for President Lai\'s aircraft citing One China principles. First time a Taiwanese president\'s diplomatic travel directly disrupted operationally. PRC pressure achieving concrete outcome via third-party states.',sig:'e',src:'Gemini diplomatic report'},
+      {name:'PRC-KMT diplomatic wedge',obs:'Xi-Cheng meeting creates PRC channel to Taiwanese opposition bypassing Lai government. Soft diplomatic pressure — not a formal downgrade of ties.',sig:'w',src:'ISW-AEI Apr 17'},
+      {name:'Ally count',obs:'12 formal allies. No defection or severance in April.',sig:'b',src:'Open sources'},
+      {name:'Active pressure campaign',obs:'Belize and Guatemala under continued PRC debt restructuring outreach. Paraguay grooming ongoing.',sig:'w',src:'Gemini diplomatic report'},
+    ]},
+  mil:{status:'Moderate',trend:+1,conf:'High',
+    summary:'~210 sorties through Apr 23 — moderating from March peak. CCG Kinmen reduced to 2 incursions. 40-day Shanghai airspace closure (Mar 27–May 6): unprecedented duration and scope — no commercial disruption confirmed but significant pre-exercise signalling.',
+    subs:[
+      {name:'ADIZ sorties',obs:'~210 sorties through April 23 (avg 9–12/day). Annualising ~270–310/month — moderating from March\'s 340. Improvement from March above-baseline reading.',sig:'b',src:'Gemini military report'},
+      {name:'40-day Shanghai airspace closure',obs:'Five offshore zones closed Mar 27–May 6 (340 miles, Yellow Sea to East China Sea). INDSR researcher: "first time" closure is "so sudden, geographically extensive, prolonged, and poorly documented." No commercial disruption — airlines rerouting. Strongest pre-exercise signalling of the period.',sig:'w',src:'Washington Times Apr 8; Peninsula Qatar Apr 9'},
+      {name:'Chuan Yu No. 6 incident',obs:'Taiwanese fishing vessel caught fire near Diaoyutai Apr 17. CCG framed rescue as "emergency rescue of Chinese Taiwan fishing vessel" — sovereignty assertion via SAR operation. CGA condemned as "cognitive warfare and political maneuvering."',sig:'w',src:'Taipei Times Apr 19'},
+      {name:'CCG Kinmen',obs:'2 CCG incursions to date — reduced from March\'s 6. Possible tactical pause or partial data given Apr 23 cut-off.',sig:'b',src:'Gemini military report'},
+    ]},
+  cog:{status:'Moderate',trend:0,conf:'Moderate',
+    summary:'New CIB clusters post-Xi-Cheng meeting. Proxy amplification in Taiwanese media confirmed. Consistent with March pattern — no new spike above prior months. Election infrastructure building.',
+    subs:[
+      {name:'New CIB clusters',obs:'New clusters post-Xi-Cheng meeting focused on cross-strait integration narratives and framing PRC nationals\' illegal entries as "civilian exchanges."',sig:'w',src:'Gemini cognitive report'},
+      {name:'Proxy amplification',obs:'Confirmed Taiwanese media reporting on PRC nationals\' illegal entries mirroring PRC doctrinal narratives. Local proxy amplification continuing.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Cross-platform rollout',obs:'Simultaneous rollout of 10-point plan details across PRC state media, Taiwanese proxy outlets, and social networks.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Reported impact',obs:'No new spike above March pattern. AI data scraping on legislators confirmed — election infrastructure building. No material opinion impact demonstrated.',sig:'w',src:'Framework application'},
+    ]},
+  all:{status:'Low',trend:0,conf:'High',
+    summary:'Arms package still on hold. Australia-Japan joint statement linked Taiwan Strait stability to their partnership. Post-Iran ceasefire may allow Indo-Pacific rebalancing. No allied activity spike approaching PRC retaliation threshold.',
+    subs:[
+      {name:'Arms package on hold',obs:'Trump-Xi summit moved to mid-May. $14B package on hold. Arms hold reduces near-term PRC retaliation trigger risk.',sig:'w',src:'Taipei Times Mar 14; synthesis'},
+      {name:'Australia-Japan statement',obs:'Apr 19: Australia-Japan Defence Ministers reaffirmed "peace and stability across the Taiwan Strait is essential." Australia confirmed US$14.25B frigate purchase from Japan. Regional signal below PRC immediate retaliation threshold.',sig:'b',src:'Gemini allied report'},
+      {name:'Post-Iran rebalancing',obs:'US-Iran ceasefire Apr 8 may allow carrier asset rebalancing toward Indo-Pacific. Modest positive future signal.',sig:'w',src:'Gemini allied report'},
+      {name:'Provocation threshold',obs:'No allied activity spike approaching PRC retaliation threshold. Post-summit arms announcement will be the key trigger to watch.',sig:'b',src:'Framework application'},
+    ]},
+  str:{status:'Low',trend:0,conf:'High',
+    summary:'Military moderating. New diplomatic and economic signals are isolated — no confirmed simultaneous multi-domain escalation within a 7–14 day window. Post-summit exercise risk is the primary forward convergence watchpoint.',
+    subs:[
+      {name:'Multi-domain spikes',obs:'Military moderating. Economic new legal architecture but not operational. Diplomatic overflight denial isolated. No confirmed 3-domain simultaneous spike within 7–14 day window.',sig:'b',src:'Synthesis'},
+      {name:'Election proximity',obs:'November 2026 elections 7 months out. KMT-PRC channel formalised. AI data scraping on legislators confirmed. Conditions for coordinated influence operation building.',sig:'w',src:'Synthesis'},
+      {name:'Post-summit exercise risk',obs:'Trump-Xi summit mid-May. Shanghai airspace closure (Mar 27–May 6) is potential pre-exercise staging. PRC historically uses post-summit window for escalatory signalling.',sig:'w',src:'Washington Times Apr 8; historical pattern'},
+      {name:'Tempo',obs:'Military tempo moderating. CCG Kinmen reduced. No acceleration across domains in April.',sig:'b',src:'Synthesis'},
+    ]},
+},
+};
+
+let activeM=MONTHS[MONTHS.length-1];
+let tlChart=null;
+let activeFilter='overall';
+
+function sc(s){return s==='Low'?'s-low':s==='Moderate'?'s-mod':'s-high';}
+function otcol(t){const m={'-3':'#8B1A1A','-2':'#C0392B','-1':'#E8847A','0':'#888780','1':'#7ECDC0','2':'#2AB5A5','3':'#1A7A6E'};return m[String(t)]||'#888780';}
+function tl(t){const m={'-3':'−3 Sig. deteriorating','-2':'−2 Deteriorating','-1':'−1 Disruptive','0':'No change','+1':'+1 Stabilizing','+2':'+2 Improving','+3':'+3 Sig. improving'};return m[t>=0?'+'+t:''+t]||t;}
+function tc(t){return t<0?'tn':t>0?'tp':'tf';}
+function ta(t){return t<=-2?'↓↓':t===-1?'↓':t===0?'→':t===1?'↑':'↑↑';}
+function sig(s){return s==='e'?'<span class="sig-e">elevated</span>':s==='w'?'<span class="sig-w">watch</span>':'<span class="sig-b">baseline</span>';}
+
+function renderTabs(){
+  document.getElementById('month-tabs').innerHTML=MONTHS.map(m=>
+    `<button class="mtab${m===activeM?' active':''}" onclick="setM('${m}')">${m}</button>`
+  ).join('');
+}
+
+function renderTable(){
+  const d=DATA[activeM];
+  document.getElementById('active-label').textContent=activeM;
+  document.getElementById('ind-tbody').innerHTML=INDS.map(ind=>{
+    const v=d[ind.id];
+    return `<tr class="row" onclick="openModal('${activeM}','${ind.id}')">
+      <td style="font-weight:500">${ind.name}</td>
+      <td><span class="badge ${sc(v.status)}">${v.status}</span></td>
+      <td><span class="tc ${tc(v.trend)}">${ta(v.trend)} ${tl(v.trend)}</span></td>
+      <td style="color:#5f5e5a;font-size:13px;line-height:1.5">${v.summary}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderWatchpoints(){
+  document.getElementById('watchpoints').innerHTML=WATCHPOINTS.map(w=>
+    `<div class="bi"><div class="bd"></div><div>${w}</div></div>`
+  ).join('');
+}
+
+function renderFilters(){
+  const filters=[{id:'overall',label:'Overall'},...INDS.map(i=>({id:i.id,label:i.short}))];
+  document.getElementById('chart-filters').innerHTML=filters.map(f=>
+    `<button class="ftab${f.id===activeFilter?' active':''}" onclick="setFilter('${f.id}')">${f.label}</button>`
+  ).join('');
+}
+
+function setFilter(id){
+  activeFilter=id;
+  renderFilters();
+  renderTimeline();
+}
+
+function getChartData(){
+  if(activeFilter==='overall'){
+    return {
+      data:OVERALL.map(o=>o.t),
+      colors:OVERALL.map(o=>otcol(o.t)),
+      tooltips:MONTHS.map((m,i)=>({
+        title:`${m} — Overall`,
+        trend:OVERALL[i].label,
+        summary:null
+      }))
+    };
+  }
+  const ind=INDS.find(i=>i.id===activeFilter);
+  return {
+    data:MONTHS.map(m=>DATA[m][activeFilter].trend),
+    colors:MONTHS.map(m=>otcol(DATA[m][activeFilter].trend)),
+    tooltips:MONTHS.map(m=>({
+      title:`${m} — ${ind.name}`,
+      trend:tl(DATA[m][activeFilter].trend),
+      summary:DATA[m][activeFilter].summary
+    }))
+  };
+}
+
+function renderTimeline(){
+  if(tlChart)tlChart.destroy();
+  const cd=getChartData();
+  tlChart=new Chart(document.getElementById('tlChart'),{
+    type:'line',
+    data:{
+      labels:MONTHS,
+      datasets:[{
+        label:'Trend',
+        data:cd.data,
+        borderColor:'rgba(100,100,95,0.25)',
+        borderWidth:2,tension:0.3,fill:false,
+        pointRadius:7,pointHoverRadius:10,
+        pointBackgroundColor:cd.colors,
+        pointBorderColor:cd.colors.map(c=>c+'33'),
+        pointBorderWidth:3,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      scales:{
+        x:{
+          grid:{color:'rgba(0,0,0,0.06)'},
+          ticks:{color:'#888780',font:{size:12}},
+          border:{color:'rgba(0,0,0,0.06)'}
+        },
+        y:{
+          min:-3,max:3,
+          grid:{color:'rgba(0,0,0,0.06)'},
+          ticks:{color:'#888780',font:{size:11},stepSize:1,
+            callback:v=>{
+              const m={'-3':'−3 Sig. deteriorating','-2':'−2 Deteriorating','-1':'−1 Disruptive','0':'No change','1':'+1 Stabilizing','2':'+2 Improving','3':'+3 Sig. improving'};
+              return m[String(v)]||'';
+            }
+          },
+          border:{color:'rgba(0,0,0,0.06)'}
+        }
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:i=>cd.tooltips[i[0].dataIndex].title,
+            label:i=>{
+              const tt=cd.tooltips[i.dataIndex];
+              const lines=[tt.trend];
+              if(tt.summary){
+                const words=tt.summary.split(' ');
+                let line='';
+                words.forEach(w=>{
+                  if((line+' '+w).length>60){lines.push(line.trim());line=w;}
+                  else{line+=(line?' ':'')+w;}
+                });
+                if(line)lines.push(line.trim());
+              }
+              lines.push('');
+        
+              return lines;
+            }
+          },
+          backgroundColor:'#fff',
+          titleColor:'#1a1a18',
+          bodyColor:'#5f5e5a',
+          borderColor:'rgba(0,0,0,0.1)',
+          borderWidth:1,
+          padding:12,
+          boxPadding:4,
+        }
+      },
+
+    }
+  });
+}
+
+function openMonthModal(month){
+  const d=DATA[month];
+  const ov=OVERALL[MONTHS.indexOf(month)];
+  document.getElementById('modal-title').textContent=`Full breakdown — ${month}`;
+  document.getElementById('modal-meta').innerHTML=`Overall trend: <strong style="color:${otcol(ov.t)}">${ov.label}</strong> &nbsp;<span style="font-size:11px;color:#aaa">(provisional)</span>`;
+  document.getElementById('modal-body').innerHTML=INDS.map(ind=>{
+    const v=d[ind.id];
+    return `<div class="srow">
+      <div class="srow-name">${ind.name} &nbsp;<span class="badge ${sc(v.status)}">${v.status}</span>&nbsp;<span class="${tc(v.trend)}" style="font-size:12px;font-weight:500">${ta(v.trend)} ${tl(v.trend)}</span></div>
+      <div class="srow-obs">${v.summary}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function openModal(month,indId){
+  const ind=INDS.find(i=>i.id===indId);
+  const v=DATA[month][indId];
+  document.getElementById('modal-title').textContent=ind.name;
+  document.getElementById('modal-meta').innerHTML=
+    `${month} &nbsp;·&nbsp; <span class="badge ${sc(v.status)}">${v.status}</span> &nbsp;·&nbsp; <span class="${tc(v.trend)}">${ta(v.trend)} ${tl(v.trend)}</span> <span class="conf-pill">confidence: ${v.conf}</span>`;
+  document.getElementById('modal-body').innerHTML=`
+    <div class="fn"><strong>Scoring note:</strong> Status = severity of sub-indicator signals. Trend = deviation from established baseline, not absolute level. Impact and reported effects weighted over tactics and infrastructure alone.</div>
+    <div class="mo-summary">${v.summary}</div>
+    <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888780;margin-bottom:.5rem">Sub-indicator breakdown</div>
+    ${v.subs.map(s=>`<div class="srow">
+      <div class="srow-name">${s.name}</div>
+      <div class="srow-obs">${s.obs}</div>
+      <div class="srow-src">Sources: ${s.src}</div>
+    </div>`).join('')}
+    <div class="src-block"><strong>Primary sources:</strong> ISW-AEI China &amp; Taiwan Update (Jan–Apr 2026) · Taiwan NSB Cognitive Warfare Report · Gemini cross-validated data · Focus Taiwan / CNA · Taipei Times · The Diplomat · Global Taiwan Institute · Foreign Policy · Washington Times · The Hill</div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+document.getElementById('modal-overlay').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+
+function setM(m){
+  activeM=m;
+  renderTabs();
+  renderTable();
+}
+
+const PDF_B64 = 'JVBERi0xLjQKJZOMi54gUmVwb3J0TGFiIEdlbmVyYXRlZCBQREYgZG9jdW1lbnQgKG9wZW5zb3VyY2UpCjEgMCBvYmoKPDwKL0YxIDIgMCBSIC9GMiAzIDAgUiAvRjMgNiAwIFIgL0Y0IDcgMCBSIC9GNSAxNiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0YxIC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMyAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMiAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0NvbnRlbnRzIDIyIDAgUiAvTWVkaWFCb3ggWyAwIDAgNTk1LjI3NTYgODQxLjg4OTggXSAvUGFyZW50IDIxIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iago1IDAgb2JqCjw8Ci9Db250ZW50cyAyMyAwIFIgL01lZGlhQm94IFsgMCAwIDU5NS4yNzU2IDg0MS44ODk4IF0gL1BhcmVudCAyMSAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKNiAwIG9iago8PAovQmFzZUZvbnQgL0hlbHZldGljYS1PYmxpcXVlIC9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nIC9OYW1lIC9GMyAvU3VidHlwZSAvVHlwZTEgL1R5cGUgL0ZvbnQKPj4KZW5kb2JqCjcgMCBvYmoKPDwKL0Jhc2VGb250IC9TeW1ib2wgL05hbWUgL0Y0IC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKOCAwIG9iago8PAovQ29udGVudHMgMjQgMCBSIC9NZWRpYUJveCBbIDAgMCA1OTUuMjc1NiA4NDEuODg5OCBdIC9QYXJlbnQgMjEgMCBSIC9SZXNvdXJjZXMgPDwKL0ZvbnQgMSAwIFIgL1Byb2NTZXQgWyAvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJIF0KPj4gL1JvdGF0ZSAwIC9UcmFucyA8PAoKPj4gCiAgL1R5cGUgL1BhZ2UKPj4KZW5kb2JqCjkgMCBvYmoKPDwKL0NvbnRlbnRzIDI1IDAgUiAvTWVkaWFCb3ggWyAwIDAgNTk1LjI3NTYgODQxLjg4OTggXSAvUGFyZW50IDIxIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iagoxMCAwIG9iago8PAovQ29udGVudHMgMjYgMCBSIC9NZWRpYUJveCBbIDAgMCA1OTUuMjc1NiA4NDEuODg5OCBdIC9QYXJlbnQgMjEgMCBSIC9SZXNvdXJjZXMgPDwKL0ZvbnQgMSAwIFIgL1Byb2NTZXQgWyAvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJIF0KPj4gL1JvdGF0ZSAwIC9UcmFucyA8PAoKPj4gCiAgL1R5cGUgL1BhZ2UKPj4KZW5kb2JqCjExIDAgb2JqCjw8Ci9Db250ZW50cyAyNyAwIFIgL01lZGlhQm94IFsgMCAwIDU5NS4yNzU2IDg0MS44ODk4IF0gL1BhcmVudCAyMSAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKMTIgMCBvYmoKPDwKL0NvbnRlbnRzIDI4IDAgUiAvTWVkaWFCb3ggWyAwIDAgNTk1LjI3NTYgODQxLjg4OTggXSAvUGFyZW50IDIxIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iagoxMyAwIG9iago8PAovQ29udGVudHMgMjkgMCBSIC9NZWRpYUJveCBbIDAgMCA1OTUuMjc1NiA4NDEuODg5OCBdIC9QYXJlbnQgMjEgMCBSIC9SZXNvdXJjZXMgPDwKL0ZvbnQgMSAwIFIgL1Byb2NTZXQgWyAvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJIF0KPj4gL1JvdGF0ZSAwIC9UcmFucyA8PAoKPj4gCiAgL1R5cGUgL1BhZ2UKPj4KZW5kb2JqCjE0IDAgb2JqCjw8Ci9Db250ZW50cyAzMCAwIFIgL01lZGlhQm94IFsgMCAwIDU5NS4yNzU2IDg0MS44ODk4IF0gL1BhcmVudCAyMSAwIFIgL1Jlc291cmNlcyA8PAovRm9udCAxIDAgUiAvUHJvY1NldCBbIC9QREYgL1RleHQgL0ltYWdlQiAvSW1hZ2VDIC9JbWFnZUkgXQo+PiAvUm90YXRlIDAgL1RyYW5zIDw8Cgo+PiAKICAvVHlwZSAvUGFnZQo+PgplbmRvYmoKMTUgMCBvYmoKPDwKL0NvbnRlbnRzIDMxIDAgUiAvTWVkaWFCb3ggWyAwIDAgNTk1LjI3NTYgODQxLjg4OTggXSAvUGFyZW50IDIxIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iagoxNiAwIG9iago8PAovQmFzZUZvbnQgL0NvdXJpZXIgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgL05hbWUgL0Y1IC9TdWJ0eXBlIC9UeXBlMSAvVHlwZSAvRm9udAo+PgplbmRvYmoKMTcgMCBvYmoKPDwKL0NvbnRlbnRzIDMyIDAgUiAvTWVkaWFCb3ggWyAwIDAgNTk1LjI3NTYgODQxLjg4OTggXSAvUGFyZW50IDIxIDAgUiAvUmVzb3VyY2VzIDw8Ci9Gb250IDEgMCBSIC9Qcm9jU2V0IFsgL1BERiAvVGV4dCAvSW1hZ2VCIC9JbWFnZUMgL0ltYWdlSSBdCj4+IC9Sb3RhdGUgMCAvVHJhbnMgPDwKCj4+IAogIC9UeXBlIC9QYWdlCj4+CmVuZG9iagoxOCAwIG9iago8PAovQ29udGVudHMgMzMgMCBSIC9NZWRpYUJveCBbIDAgMCA1OTUuMjc1NiA4NDEuODg5OCBdIC9QYXJlbnQgMjEgMCBSIC9SZXNvdXJjZXMgPDwKL0ZvbnQgMSAwIFIgL1Byb2NTZXQgWyAvUERGIC9UZXh0IC9JbWFnZUIgL0ltYWdlQyAvSW1hZ2VJIF0KPj4gL1JvdGF0ZSAwIC9UcmFucyA8PAoKPj4gCiAgL1R5cGUgL1BhZ2UKPj4KZW5kb2JqCjE5IDAgb2JqCjw8Ci9QYWdlTW9kZSAvVXNlTm9uZSAvUGFnZXMgMjEgMCBSIC9UeXBlIC9DYXRhbG9nCj4+CmVuZG9iagoyMCAwIG9iago8PAovQXV0aG9yIChcKGFub255bW91c1wpKSAvQ3JlYXRpb25EYXRlIChEOjIwMjYwNDIzMDUzMDMwKzAwJzAwJykgL0NyZWF0b3IgKFwodW5zcGVjaWZpZWRcKSkgL0tleXdvcmRzICgpIC9Nb2REYXRlIChEOjIwMjYwNDIzMDUzMDMwKzAwJzAwJykgL1Byb2R1Y2VyIChSZXBvcnRMYWIgUERGIExpYnJhcnkgLSBcKG9wZW5zb3VyY2VcKSkgCiAgL1N1YmplY3QgKFwodW5zcGVjaWZpZWRcKSkgL1RpdGxlIChcKGFub255bW91c1wpKSAvVHJhcHBlZCAvRmFsc2UKPj4KZW5kb2JqCjIxIDAgb2JqCjw8Ci9Db3VudCAxMiAvS2lkcyBbIDQgMCBSIDUgMCBSIDggMCBSIDkgMCBSIDEwIDAgUiAxMSAwIFIgMTIgMCBSIDEzIDAgUiAxNCAwIFIgMTUgMCBSIAogIDE3IDAgUiAxOCAwIFIgXSAvVHlwZSAvUGFnZXMKPj4KZW5kb2JqCjIyIDAgb2JqCjw8Ci9GaWx0ZXIgWyAvQVNDSUk4NURlY29kZSAvRmxhdGVEZWNvZGUgXSAvTGVuZ3RoIDc1NQo+PgpzdHJlYW0KR2F0biM/WjRDSSdaSnUsLklKRlJjTFoyRmZRZiRQOi1vbkxlZE1rQShSKUEyPVZFUz07IW0iWVBFbWE/WCM7NSZbOnRlPlQ5Rj5HMltHcDtmYCleJV8hO3Q4azZOSVk/Tk5oSCtoclE2SHVfO1c+K2VKREArclspLHFwUSQ8dUc4NjpSSGIkVV11TzNNXjAkRlw2c25dJTJDOT9SOEJZTylkI2YtLCtAKUY5Iignb00mJl5INWElUjhCS0BXKjhWRlY9KD8iJzVdYS9ZVVxeP0w/bkRbLk45bG1VUlVcLTNETD4nKltxS2A8YEQ2czNXQ2I0UEdUSWhnJl0rL0UpS1toKjVzN0UuNyQySmVkP2hPITJQcWA9VydoWDFOJThNdHFRVHElIUxPTWFqVWVbOkZXPURZSTU/dSVrclRyT2UsKT5MJ2Znb25DPD9gO05WOj91cGlSMzUhOGdwUEolSkk1QjVHSSVjaSQmPXMtLk4hZj8jNG5lSl1eSjBgdT4/MVVuUXM1Zl1dKTkzUGElIjpQP2lvNy43T2thciJebjovTiNcODhvdWVJQS4wMWkwbmcpXHVwaTE8Rk5JTFQnInRIbUdpQlpeczk5PGpyZWtrTDwzIzY0K0hlL19zbTMvTzgpO1FLVmE7Q2x0NmRkaDlobS8qcFw5OSREXXUhQ0QmXG06Y11xclpVKk8+IW9iWCxrPSFbPWFSMkM6RzRdOEQyQSRBKjxnamxaJnJhJlJbVzorNkRkWEcsOyEzXypZJSlVUTpbIWpUSS91Y1VaMSxMSmZWOCZSSS1ZJj9YYzRqQjhYNmpaPj9hbTNsZT05UmBOSjFNSUlePitGbTA5LC4vWlorcFkpSEpINlMjJ2Q3ZzY+OChYaVtWTSNbQWIxOzk5SnVxXUJnPEVwUDZLYDx1JCFbK15OWz1PWTVcWjBISktCKkEqXyI8Rj1jL2ZUJlBCWkQqX2dqLjUsVjRpcWUqRVZnXVI6KXEkamdZRGwzfj5lbmRzdHJlYW0KZW5kb2JqCjIzIDAgb2JqCjw8Ci9GaWx0ZXIgWyAvQVNDSUk4NURlY29kZSAvRmxhdGVEZWNvZGUgXSAvTGVuZ3RoIDI4NDkKPj4Kc3RyZWFtCkdhdTBFPkM1Kl8mcTBNWFIoJCghTV1tPFc4XF9mMmRWWmFEbGUoTHJnXHEkTztpbFplLFpLPCJYJDVsZ21mQFp1WT1kZl5eSVNyaWJLUUo0QipMMTsrMj8lNWpzQUNjRipkXzcmSVc5ZCxTa1k7YnMwWVJxOV45Uz80c0plUUJATjA7OTBzUGRPPVlHTiVUVEJubV0wbFdbTUpOKywkdE47RXNYUDU+JWxNMy9ZP2sqWHJqK0ZqcUlxP2xgImFnKj02YSQvdTNxS1g1YjksXj5CJi83UERWRm9jQGYqPWNNbFFoWThdbzkoRzU9ckItMFdccCwjU1o+QjY5JDpzPG4kbE5YLic9QS4qRlInMzs2U006J2woLk8rMUg4NmhVKTFFUlhhTFxCNz9BSiFJOiVMYFFYZTBfcSJKVVtpXjUhcDVZKWhQMGYraCdebSI2aUttMXVyUl47U3MnM2g1ZjtuWUBaVVYyLCxMOiJCJnMkTVAmJXUvSkslUHUhOTo3VSVGSkVENUpLTilBOzQvXnVydGE8Wjw9dSpoTiNaYU1wZzAzJV5WLFVacGUiQDo+NERuVWwnRVtfZnVdMXUvLUJuX2ReJilpLidvTSlPWmdNYipERWU1OVdkPWdrMF8uS0RqMWpQV3MrbnJEOGI8LE8nQkU6WWx0QWRjRE5BIytZUi1uWlI1T21BSFZPOT1fYEFQaHBHdUtRQS0vPGI8V2xAWl83YyMyTUxwXVRoRFpEaEBxXm1bQTouOlg+aktdL2hZSlFoYl4vTGwiPS5VKUlNVyFrWmx1XVdQIlArWkJpQChjMU1FTksjO1hebXMqc0E6R2tfbUgwYTU2XiJBc15XJWhnK04qSz9hLTdDWShic3BxOXFqKyk3UjI4VC03KSUzV2hOPSxkMU4/b1gwcjpnYDZUNyhWTFNTKC8+S0xZUkxvIix1I3VicD9AK08hLkwpWCIqbDktcE1cWi1Gbi9obGUxQWczOEgnYnM6S2s4XyteNkJ0ZVZgXUYvT0oiWHVbJzR1N1hSVjVIRSxoamwwX1xQdUpWZzBgWlBsOylsIUNXZEwySEVmO2dIcD9ZIlAtMHMvPmFHPlYoPGwnZ0VHWS4mcFciPFkqS01JYyQuWE88JGM0UVotPztXYidDUFZecm5dQ2c1QlMkcSs2YF1NNmorZ042KEQuXVZadS4kRyRoJ1xvWDFlQ1tBSzFLZW5ESicoQyJAZScvWHRqLiVoU0tOOEsuWjNmJTkuJHRFZiRHblxUP1c9UXFoVCZWc1tFdDI2IWlDTVFecEAyYlBKQjJZS1xISy9DXW4pMj4wIW42bVdZcmIlS0xoayxxamVuXic4RD41KzAiSC8tNEpNXSpnMmAkZWEpcnJfQ0pUZGM6WFxoTzMoOyVzXDhiZENlRmAvVTF0SlFhS3BRIU88PF5HSms8LGRPOHRyRFFUaU0jWDcsVlgvWWJNWTxkZlswYyJbMVwrcT1kIzFpKkwyYkhhT1hOUk5AQmUlbCFCU1FgQjpTQ2E5bHRoWW5vXmQtSF1RLjVAJ1Z1NjdTOy1mSDlAK0BMYSU3dUFzLW5bKW5FPFBbUmlvI1otKygiWGZDdE5uXkE5dFpIUTVGYGdWLVo1XUonY0JYQjEydGZPdVk0VExiODZLQWpWSVtSRlZkJl9aPThRVidIRDNAPE1lOztEbkFhQTZFLTI2J2gvXTNrciloJEw2RDgoUEkuOyJlUyc/W2o2bjRoPVZJZyglRzo0PSlVO1o1OjBeTCM2cSstRl4qYiRUSjBsW1BpO0RqXzJBKGlKbTRBOVBsZiRPQEU4MV5NSkU9amJPV28ucDptNlpAcCFUIU51bUEnRi08UUFjcSc3U0goIk8uZFZUczB1JlM7RFxiWTYjWHBSLlhTOFtYISNDOXVqbjVRRzJDdTlCPU1hLFk3TVhbaC4wRVUrJCloOjpxPSFrVC1bKz9RZCRZXF9FUkdWV2RtYnI0WyEybipUMis7Qm9PITQ6MyR1SlVjMzA0JVZGSWlKY1dXWVxbXVxVa2ltJzsnZjZkbSdHOGtxb2A4JW4taCgvMjc/RUtZUHBhP0pXM2pxT0tBaURnUGI6JCttXmJVbEJqVFRjLFpJNkdgNVNFKUhbKFEvOU5mdFBHNExBMnRtR2JmRmhVTFpmNCdELW5QW1pFVSsmWFMxbTA5bXFqcFJWX1pOUkUpS2VpPm5TRjo4WSpwbk4nNk43LmpEXUElUmRzUTgmIitvISMlK3RsMC9vMiwsZlIzVjwtKXMlMWMwXTkjQTdGXzRHUCdBMEw/VmMiYkBWISpIX3NqLTErZ0s2XDZfS0Q6N3U0WHE9alZQQTBYTVFNRXNrKVddO2goblpoUVtocFksQkRKWCpTa0EiZFo9Sz1AVzB0UWlKVWxVcUpOSyM2dV1gbCpuSmFiMSNqVTQnO3JwN05PXjVBZW4oKyZtWltFQCpxRkVJYUU1cVxNZmtSSUE+Rz1mRTwxbClyRSlKYWhJclQ8MTduZjBUOlgzOWltPzI1WypgOFVgXXFqMXNaTlJgMl4pcyg6NDNGK1lESixBQ14sbFojR1hgYURsJDw0UU1mNm4uSSsuQW5DZnJmaDE9LSJOMiYrREAuXSxuXDRUK3EuRFgnTDZDTzAwQ1htPE8uRzJcYCgwPSoyajsnMzAmQ1QnLEZlaDlIYztmPFUhV2krSUo5T05xRlQ8XlhgIUcwbGMrPEsyVVpQYTQ9L0ddPyE6I2EtIixLMGYtSE51KzVpPypjSCNYTDdRdV9wRF0oaW0jRE8wbipgO19SPGw+WFhdImtRQ090K2VdZio7SURUJCMudD09MFtuUjJHcklyYScxTlsmZSY7ZEc3TDIrLD9hNUw9XzdLVi9YKjhlTllwQ2hPOl9CR2M+LTUqKldmMHVMOGlDYTMwQUNeQ1NhKSlrNlUvPmEtZT5mTzFmWmhZJlxvYFMrWTNeIk9rUytRYyFDSGA1JiFHOjRIcD5fJCVJRWgnciN1WWZuaEw+Ml9WSSJCLCs4XTo2Oz5ZbE5dYUNuakg1Y2RQSiZOUzVNYCViVEhqV2ReN1doMVJXWE5EMl1JciJgM0JVUyY5aiRkbXVeJlFaYkNkbGFMWXQwa1RANlZtYGMlOVQoQGJARDExJ0pHJyInPkQ8Xis+UkNrZkYxaUAxLGIzZSlDVjV0WzIqMmBcMExhTl4kKGNsPzklKVJsOWFkUzAmaFYpckUxZVYjcT05bSJzVm9pW1gxSVJZPVU+M0kpRCIncjtwTXFyUVBWOjJBKztxSjFzMSEsPFZhVSpfbC5EZFNbIVItVSpKRG0qUmMvcmRMQCZzJ0NNc0MkWlEjXlFESnNIQThvJmVQSi1aUkNjKG4vJms7JUQqQCYydCsuSiFjbkh1KGIxRjgnT0RcLEE+QycrZkMybFlXc2lOLSJhKUIuZSdYJEYxYEZrSGEvP2ZIWElGT2lFZitxb09dcjJFMl1NRjEmNHJvNW9zM1leXDdnOk5QLkdOaDMuYG5dKUNeL2VDMEdca0NwTWcmPiIuLU8+XyNjUEIpKDM6TFxpMHFjcChUUzdgb01JJyxfIkJxRTUmPjRcPyliPiRzNT1hZmBlPkBOPGdSOkhTQEBzNlNDcFs9UipxajY+NU0oJzlcbzZwQ0M/QnAwWE85MFtAMjhYITdxTVIxcjs2SEdeRDJJakRhZldpUWI8YVw6VVomRD10PihaZGBxPFNSNlNwWzdOcEMkMEtzVT0mRS4lOysuRF8rViFWZG1MW0xDJm1bJnQ1Iy0taVw9OX4+ZW5kc3RyZWFtCmVuZG9iagoyNCAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAzMjUyCj4+CnN0cmVhbQpHYiE7Zj5CZiw5JlVzSlhSKCdUKWJscj4oYWgwV1w4TjVJInA+WWU5cEBKTTQrYy4ucTt1ayhAcVduIlppKFtOTlZTKVJebCE+cCkhIVwoRCYpUmQiaWwoPlFnUm0vZmtmNm5SblYuX09sI28/VG9LcC07OCQ/aGFJX1lBXVQxPzVQXUpwMyIqZzJrQzBvSnMrb1tBTDFkSSphJ0xqUj5WQWouTmJwTyFhclsmLDVbNFswanUuZD9PbjQlWUJOUW1IVUluOks7UjY7LnM3UCptRVAxXDAiVlA/T0NVXU4nJ0BLSlA4bjhQSFUvXHBVSmxYZmpySjhlX2BKWUgrQ3M8RGJANFEtY1JXL1E+TEZuZmRTO0NmWVtiUWg+QXA1QWM8YHJlWU8tZC1eUk5ISHI2MW5dPS89MF1HUDJMOEQ/LV5OZWVyZjY9I2koXkZCZ19yc3ByMm5zZzlScFUnaXJUIUskclUnNEJkOUlvIyJlaXRdJ0xzQlBvcm5ALVtka1hyaV1RMSNYZGI7IjkoSkI3LD9TTG0nRSkyZD8uOVVfcWFlaTYrSjNwZksoVSxpcUIyKWVLJGZDOEo0VlsmKDVXb2U7aTNVMEdSRUE+Q1AvQUE8aiIsb1E7QUY8PzRyJDhtSkVcKS9cXSFoZE0xJ0csI2JzX3BYLCEsQiwlNnQjQGUnR2oxdTE1PGY+N0deYmA8QXAzU1c/QzxnMzRWXHFQQ0kwMjUzTjg8KzpySj5USCc2PG9aJl49PnUvOlA4MCxcaElKVUEuZjE7I25TVC8jKDFjPVhnPU9GZFg+QkUoNTpoaWAidWtNO3FWbWhWJE06blkuXkhCZ05rWkdCcydHPWxJKzBiTEhgMlptbmgmMC1gXkxWVzIkTz9aKiRVKXFsXk4mUDxtLUJlOEhBRDR0TS5kNDlUVCVGcD5YWilpZ09PYnAqM0BfRUI5RCsuVUA/OyRPdVUqT19bZlxvbz0oKChnYXBTO2MtbD43ZD0na1A/aTsmNW5DWUAqX1o9ZElcbz0lPCNqXlhRNzA5QEA4bVJscWA7UlNGQWYsMSFBJTBobVkxVUFdS2xMIy9RW2xZIWZOXk1KJFtScCVhYVRXNmpvJWlGbk5yO1VmI0xdXjtnRnMhamBTVi42YyxqZkpQXUI4TWpaUzFoKV4kKkpnTmFFK1Y/RWQ6OjVFbTIkQXF0R1ZlW3NfR1teZ25RVnM8MERFSD01PmojcWNZRUQoQy4kW1QrKFlldDhtTm5HZmFqciRqWyMzSEZbLDYwSzxSdFs/KkBFXyM7OE8sUiZoQ1UqYjc1bFh1Ik8rXEAwWyghcSJyPWskUSReWF1oJVdrJCZGZmo6OS4kJDY7JCsyQToiRi5MQEUpYU0kSUVJIi5JMF02IWEtQlojKFVAN1VEcUE7Njw3OjxJJSljOHFQa19tbGctUidIZilfWC9lO0tXcWgmYEBoWkFZN2NGNFo2PmgpWyREUGRZXzpUcEw5JkpqPixCPTVTVDQoJm9qSSFCaiZGLys3JlVAImZUW2kjWiVtPDQlMGU5NklVTzYjUytaLllLTW1lMSQ5ZT9JLmE0NismQV9yTUNIbjc1XiEzaFc3UFVWOFdMUlRYUDUqaEpVdE5jVDgrRCQyJSY5Zm5JQEdxdVUzZzlSQnJiSWVzVyZkRCVza2dGMyIrREE1TldacjZQPXVjb2tXLjg3TTp0OWNvbFA0QmU4NiswWkhmaV5QQUwkPzZLVCRRNG1ialRScmZNXjRISTk9LFJhbFZOayFJN3NWdVg2N0o0KElaUjhxK00uNXFlTVV1ZS9LWHVDSyMpK11QcixBblssWiRQLGEodUBzZWxKM10zTS9raDI+KktbXypROFAtcGNlV15yK0xFUWlKMigvKyRTKyROWmZQSiozTTpAJTVPWGVWLSdYQU09R1Q4JUhEbXMpRSg3bWphdFBiT2pnP1VWSlsqZDU7XyUybCZIaUoxI0ZdLDQ3M1VobjpqZDNXVClmbFxMYGYhaz5DMGdyKUU0JCpfLCNvTz9dIiVaIl4xOiZAQUtlPXQ4KCVSTFkzIT0scEY+Uy9gJF9kMjdsXzA8X00ncFApckgpPk5tYGtpNUZ0QmZwKlguSiVMaCImZVtYcjpUVURCXyIlYVJyU2QsI0REXy8nU10lTVY5dSg3XUdzSV9MJUdrS2RWKitNaWgyTi0ubUctZiVYZi5kNzchPWtGQ0VrMT9PO2xuL1pUKjdjXEJdUGJgUUAsOC0+VjIyT2Irbio4OGRabChwNixxWko8bSo7cHQxZFFcaDwnQShpZ28lVkdDcEcpMSY5XzlLJEhtXExRQydGNVBNdWtTXz5RQDJQMmtYI0A6bV5URzQ2Pj0wODtPXTQ3Ly0waUEjaFtnK1QhQm9JRzY2PGIrNHEvU3UzU2pIM0F1OHBYI25sRnFmUyY0Zz8uKVZANFc5OUYtRShCPllpVisrb2JZR1FgXyE9KlBGNS9lcGtMMiQmPS5cVSE3SCNVOS5QSkZMLUhcXyVmTT5jO3UpVmduRSVPT3MxY1pIIltFUVlTPGRebUA0Syo+ImRHRSpIT11DbDxEdFcuV1dkSFgjV0dPXCZITEVkbl5aWEgtYXBVPyMnZSpaISZdZnFWQjZCWC5sOkxfRjs9bko0ZmJDZD9aPl9bMlElPHJOQklWQ0kpPmg3cUkoWFtLUmUhXSJxMlBXXyhsI1wxX1BBcC1WTC5PbFEzWGF1SFE9RWQqQkpyRTRIRis9XGRLTW9sLl5mcjE6T2BXbk1GPFosSShHJWlAUkojYHBtW1B0blU3c0AwRVVpMm9xQUhbXCNLQzw5TzVPS0lvI0haJ0BaRi5DNUVkOiFyIz5gNllOaFw1clVwTXFXRXVyRTxiWDlyM1FONDM4KlFiYWFzVkk5YVBFZjNALV09OVA/XXVGYUlOJFBVZkUkLmJSJkI+JDtrKDBwQ0RkJnMoayh0PHJTS3Vvc1VuWzRIPz50M01NcVxQOTo7RSZWXD8rT1FtT19cPXBoV1IzO1khNG8vIy41dCUxVy10aWxwOG1dXFUuQChIZ1JvMzM0J1Y8VXNzIkh0TWM6NXJlamUlSFhgYjMvXjpBJFNhY0ZkJkJTY2xJNlA2M3NoXm8ociZNOXFqUUNuWVs4ZzovUV5rMm8kOnJ0RiYqPDRePEtnZyEzNUE1ZCxgV1A+UkxEW0tLMzs7RkAqWS8uXyJzM1U1LjZOMSlFV0c3RHJyMVYtVjtoKjsrVCkrYWRYSFJxcD5DYCM6JF9JMjFGcyliUmRaMy1rIkNrOnAtUmshWCh1IzQ6JiZYOyRVNyNgYSsxaDBAZipNSj06WTFhLT1uSyllS1pKWWNGWz9wLUZJY2YzRiFmRHVMIUdSODhZVVlOUVdhMzQiYmIrblkzUmQuR0YmWUdZM1UrZE44OCssN0MvbWkrdSkjNkhzP0oqPV4vWmRccDx1QlQ7NjhRJ1hGcUE/QV4mbSdkbFI9IUZtY2ZzJCEyLm9ZIk01OltyOExoXlphMG4mWlMtQik5YDJXIkgyPVxsb2VfRCU3ZS08TW1IY2tTXURzSG43cnIpLWlFO0RRQ3QpJ3FGR2tRLTc7cSclaFIrbClIWSw+ZGQpaF9nNC1qUGFiOihrcT5OaCs0cSZOJzczP1tbUE4mQUJhYSdXPzRCY0xRLCxEUkpaQDdSbmhoaT1SZ28tSWhrTWteRS5TL2Y0ZUIjT0BRZkFkUDBdPnNyM1BpUDY0Oi08X0NZP0MvSnA1Vk5RbzJLcWU9a0pkOXBxKC9UUG5HcCVac1xFajUxU14nZUAoRyRYPiI2PDsqIUBQKWYzcVRWRylsbzQ+IixIMGcsVEtSVFFaNSc7WiRaTzlEPDArKmxTZDQ6XyVtQVpPLlY3UT9kNl9XSls2KUFMSUxYKidoZDRyPj1JSEwzSFJDIlJWRSlsaEcqaCMxcDs0YFQyQVtMSXE5Sj4vT2tcVThfRFdDdGRwbUokXkEpTzZzMixrL0RaZSlVK3EyTSFxVSIrbV8/ITs+LEoyPkZmLzJTWU82Ik11KnImN2BebGNaKkA/T2ZMXVBtOG5xY2JkYmRwI105NnEnYiVHWkVFOmNoTDRPOTROMVBmRCJkUDtBQy1UQCZuSmcjKEJbMWRdYThxNiRhdDxOS243R1lAdD9zJzAoTW8oQmM6RkFsYWEuL2lFQnI9LCtJOFRdYmw8PEcsMko/Z0I1UlgzRldsSHNZP2BwVDBqZlhDPnU4YEktUS5SNGFJV1hQPVsxcGhBPmhiMFY5c1RiP2JeUis6PXNlUlU1NmhaVmBRbC83UF4oTmYxU2VtaklGfj5lbmRzdHJlYW0KZW5kb2JqCjI1IDAgb2JqCjw8Ci9GaWx0ZXIgWyAvQVNDSUk4NURlY29kZSAvRmxhdGVEZWNvZGUgXSAvTGVuZ3RoIDMxMDIKPj4Kc3RyZWFtCkdhdUhOPWBgPz0mVXI/OGtkUDVMLG9BUitdQ25QYThyYVMuUV5GUkhqZC4sRSxmXjojXDIvWUtrMT9NWEUvR3RqUC9aNlRhVjZGMUdMK21tN2x0LD1PKDgvYEVlKWI/R11EbnNqMixtSk5jNF9JSTFOZzlNYSZocWFFPClSIWBnJDRUJllHPHFpTW1taTYwal8udEk6XSFKK2I2WHIiWVxnVEtZbElLVlk2XjJMUXVpKUtzbChYNCo4WS89MGJibjY2WFxVZmVIR1tWVCcmVWpyUGAtNEh1QlMiVjxnKW8+LDxiMDVfOVFSXmtVU1FKbSYjRWEwS1I2alg7Q1lOcGkmQE8iMVdgVCc/WDtJWFNzTio8YiJPRUduP3JyWXJzPlJbQC9AMmloUV9cbUcvOyVQSWMtOykyUUdJTnM1TT5bUT9PSTkrKmoxQHBxXW4mbVFRKU5SaCVJSHM4K0woSW0pUXNjNVA/WG8uQV0nVTBxQjBtYV4hLGpUXGNEMzNjdTNcbGdKRUpTVmtAVE4vaTdpODdkUitVYypNIiFORj1cW0xWP1c4RWV1NS1ZN3JKJEBvZ19QQ0loKDVaaWhSUXVDJDMibEVpT3FXX21YXidkRmY4W1dALDplZSVcOTsuUyo5S0tHVChMSyxaLDskSms7UT5AOFxMMEIkLidrO0llbyc8TCReJzNFci86U1w4LEhsNF5tNmlaZVA/OE5aIzhbO04hKXJEJltcPzQoaT8yKGtWJzVbSDR1KiNQVlxbOCU/Vkw0UUA+KG9lKVJBZWEtSFJXQ1JsO19OUiYiaFUzWXBcOyRuJ286STxaVHAxKSFRaSckbk4vUGMjKjg8Vl5TIyNhai9KXE41N2FEQ1dNMGttPWw0QEBqVmJLKWQrK0U4dVI6Vko7OCQzVz84R01kJ0ZKPl1vcUI0dD5oazMtZWZmSyFePkpaOGJDWCo9L2ZmLG08YERqQUs/Ki4uKlEpdVUoKTFVXzhJS2NjZVFBR190VSFiNV47Tkg0I1Q+LT9WJCUtVU1OcCtrRjlcNSgsJScwV2dlY09BbUEyK2xNazorVjVZWDRpLV5vc3RTQVs2XHA/OWxZKmVrMF9JKj5KT0smckpWRjQtYFhgJmsiSjskS2F0Q1RVKSlMSGlial9gVkEhQVNIUWQ+aTFPVyZkQ0xrWGBNNGg/I04zR21jQHEkODEnalVuIjA+JkAkMyV0MmM9J18yVWQ1YjorcWcoRkZlJmRNMl50Qmo2Pz1vaF51W29LTUI7bS9jVCthRDJdQG5ZU25bIz1xWGtJV0UyP0RAclFFZmJUT2Q3bFY4OCRXOkZnSGxQamlJZCVDcyo8QGdwOGFbSGtSX1NmaHRTOl5rMVkyLUZCaydlLiFnJiFlLGFUazFQIlJnTlI6KkpdW1NMOjYoMlNoR2NCKGgwN21qNWlVYTFtPDonQEwmMT9mY25JUDNZMz1QPl5hVU1waCdcW1glb2cjUShsWzBCWy46JEE/Pz4pVCNNQF81Kj47ZTZHSltUO0NQJXNRN2ZRJkNRdDsrbzBLb2lFPTxeU1ZBRklVZigvLmhyViFcRld1YV9JKDc/U3QoM3UxMWldPERwXGE5KDJiLDlCR1VKR24oVElXJyltKChBL00wNEdbJGhCQVcoWHVrQzMxQy9mYj8oMls5QjJOKmE5aCNZSEU9aTQ3cmlAV1kwUENKWFErXyRwTlk1Yyx1R2YhWHFTb1JOSWc7WzFXQSY5V0VeNUUiSmtPJ1oxTmJQMyFaXW0uNz0wVlhORi08OTpfZ14tcVksVG90OEdPTUcjWXVPOTY2Z10lPlJPajksbmlaN2dqJC9PXVIvSVg6dFdiRjs2S2VHP2V1JW5eRUxcWS9SLGxQRkQ3Y3I7ajc9QztxUkRJRy0+QUxBSClNU1IqVTAsUEVgb1NFOmcuOHNXITVaUENgOU9lZmZcVWNAQUdDXDpNSSlCW0U2Z0FKW2guMTwwZDU+MTM5aEFzZjowa00vampHPFAuUGFDZy1pLilKUzdPT0k/b2BqaCx1UTRHVSUqKGc9LUwlT0lgPWpPP2VjQXM0I0htQHJkTlZWWiRXP1hZOGFYV2xWUWYlUmEvY2BoN3BGa11YOCI5cUFIbmhUbCteJEprdGI+WzpLNEE0YHIiO0UiK3Q8LEVxKUw4XGArYTAoQFdrJz4mZkskLmg/NGReYFtoLEQha0hMTmBVZSgyZWAmQnIxdHNrU2kxMidBVF5NcEU3Tkw+SF9uNDYsLjtiMFxmX0piLCsqRC5DNCtZPDsrQWVycF1dOGk5YzJHcC1ISDNpOWNyZGhPdUNJJ0pALXVfWjkvZXFCXk0/KDZYJy0hKldpW1FEJk1bYDUlXC86X1xfNEtDK29kMS9TPkBLSkVZW0otT2RFSSNzXjNGPUdAaVNkRzlkQlZEUC9eXDYvczRvT1JpNGU7KC03SU9nMTswKVhLKmtNM0EvYTghSV9rOmhXV25XMFJsc2FfNDV1RzdybSprTz0vWGlnKW4oZFs7PlsuLDMvPSVzSk5TSk1gPSJtMSg1R2w9S0NnYCMtSjtNWiZpRiF1ZlhRL1ZPSjpnOklVIyRWVzxTOExGR0VVR14sSydHMV5gdE5eUjhHXmZRUTU6UE0pJmUqQVlidUVJNmVAMUA+XjlpQFJlXSNuKFBLbSslQmslXDk6VElMO3BXTGJDczBNNmZ1QktcNFpKRkZlJmVFaSNSNnI9QmlAJGhSJituUTVxcnApME9kMFNFVUNATjYvTW4yTUYsLyJZP0xvMWJoLURTM2JWM2IvQmFCLVZvVHFkPlw/QEQlZDBIOUIoViYlUHEtLjdNSzMvKSxYN1UxTWYzZVdwYEdPYk84UHEoT0FBXCI8ajM5bzRQP3NWWlVjLmw0J3BqbzomOllQMnFwV21xQlBMLC1AJD5NVEIhSm4tRFkja2Q0JThaMC1IP1pgN2orS04mRCxbQDI3ZXBuQHNkTTJfZjdmbSI5TTwkdU83ZmBvdExwJCFILkhCXzFoUz4zSEZkLm1cam82YjB1YXVbWyVUJFZeJSooSD4jbV4mLldCQz9yZFQ7LCkia1ctZjhNaVpiPjg9OVxQWSYtPU8jOCk6a0FhMEdLJCJcR0IwdW0xaFZlVTkkQWEyPjVSSlBGNEVIbFNlWjctIXRYLUs4Jk1pV2ctail0LCVGQF0qPDtPJ3UnaVNWbUlQOkxiJEo3K1BOSTwwVSIrW2pRO1IpJj4kO3UnOEpiRlktJWl1RUEuLz5WJyJKRnRqNSs1KHQkMmxpX2VsOWFUJWJsY1FQJ2JTUyknTUQ1MDc7PDxDUTFbOCkoQSVyNlBaVlhfalwxclYxJFZEaFgvMShzKyhxRT9TRkZWTkZxZi4tSVJsKUAhXXJLKDQlYmlBRElFLmJBSEBkTS9YbTNtUWotQUxtOD8qRGYsZS5FYDQ2U0xYJk48TjpgYmtzLk1LYU87VCFcYUhRKnNYZ1s1PSlRPlRoIUVSVzBVL0gyLlZdTUFCMi1QQ1htIlRZUV0namw0ZkJdMW5EPE9FYU5YMUpAQys1KFtvRiFZYlkuY1xRb0UuMF1oKipFZiNtM0BLWU4ycEYoUlYyN14uW2JZV2swaG5KVjVeLmlvUkwsY2kwSTNXMGxmWDohNlJKXDhGSFFuLDpJQToiSGQsX2tYOU9SVTsuPitwSmJFO2liSkc7KW4qVS5aZk8wZipYNjNESjxkMVlsZlZePSpTVVdoYHBWcF1IViU9QGI1QV5UQFxlbWw8LTpMPyw5YlctVithOVFWUDEnWkYtcDwvZCtXUlQkPF1KNysxblFQWUc/VXJSLjUkIXFtXE5zY05fQyZIQ0dSJVxkKSYlSVMyQVRWZyMkM0d1N1grU2JPWVNnNG9Jb29DS1dUUUA6NHMoKE0oIVJYLUZGZl84bCc9K2ZSUDIwQVUnIVNdUmZnR0IpU2ZoJ3NeJmxaLDxvPHAmOVQ9IjZWLTxJJ2kxdUJHSz9TLFUwMVJeL29jLS1jQUNiVEJabDAwPE9bW1hhaU5aSUlRU2Ahbm9sWl0oSERhOm5uO2BFXEYuOlJVTE5mTmRlPkMkM3MzanQ1aUtUOW9oOCpTW1lsXlIiXihOQW5vWDxrUl9+PmVuZHN0cmVhbQplbmRvYmoKMjYgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMjk0MAo+PgpzdHJlYW0KR2F1YFU+QkFRPSduNGM8MyVwaU4pJWpfc0VKbDM4Oy5Sam1DWT1RYGYkZlhjPGtzbVIocjNGWjVSUitFaHFpRGk9NDNtNEM3JG9OOEU9NmJrUCI6ZS9vbmJJSXVhPm1qOF9FaWk4V0drYStgMWQqK2dwbUk9U2Y1Wmk/T3VVJE1KPiRzIjMiY1hDM00vQD4/bTUvMDFjSSFAYiheaXE/YW9gPnBSZ1UxOlVLb2dyNVItIjE+ViRxN2Y9czUnJ0xKbSw0S11Sb2pjVlQtLjciSDw6RHI2UEIiNkcsQEUqPls4K2NeRG5GcWhlRUxXTlBxWyU/LFQtJ29BJVcnWE9iUGYzXlxFNHJuY11NLjswYD9UOmhbOGEtSmU3Jm1VQzcwclwwYCkjY2hca3NFbTczOUgoMmRaczZZYjdlQytLO0NnPjE+KFVfRjIiTWBLIz08OWo+L0I9UmthcTtHXGkxXGYjWGdRQVMiWTw2Rk1OWlwqQj9oSSY+bzlKV0dePmhWQTs8cjcmYXBfUDAlMDQnU0tFMiNkVjNcK11nY2VWVkkjcixKLzQwNGwlZjIjOCJTZWBOSVJdXnNZQ3MlRU9QLHA1LEIvZzk6X19aKEEwWkQwTzhkJlM1JEhtLGlbQ0YqQVlGYCJMY2swOS1qQGkwMVdNWyJTUENSU2k3WHBcYE8vNE02M3FyIVoscGYyaTlmKGYtJTlLKj1jIiwhVSswMEsnWS1uXiJyL2ZRSGsqYT0ub0Atam4wM1JZNSR1LiM8OnBTMD06WlUuSF1BVjUuP1RHbD9BVEA0WyljYyRGRyRicjYob2RUTSgzamM5ZSRoWT5YS1lVK1ZmNlw+MzJLV1pqI29WWnFeYVBKSkN0cFUtJW44YWY2JXI7PCI8PGBIW09PWGo5OUtQdXM5YCwxVF9qPXQuXVBJSjpsdEstRi8tUGBSPEtva1cpTjxeakdUTDl1OSdWMHApR0BZKl8jTEMvYTJOTyU5bCNpaz48XHVaRydjNCooYGBmV0c1QE1uUFw/PmRlREpJKjEiNEVyKVBSRUFDWSJKZihkMSZjR1UhdT9wKTM5WyhaQ2c9UFpcW2NLcUY0VkRMST8jJlAhSFNoQk8iZSpWPmhBMGtLKyklVGZPL0FYUFVbdWpSO3ImRE1hKHRqWS1LYCJAaDpMZShZdWJtLW5VYD09KFJETWwhUE4tQkhtUmY8WyVyL1csZzs9QnAyZVsiXl5ESjdLcjx0UDE+NF4iOW0rKl4rI2VRSDJsWzxccm0tVHJFKDFHO04qLDJXSCtnSDM+ZCI0UEVMX1Q5aWRZO1o9cWU5bDJhMHUoSWJfWUYuLDBFVFwvSF9mZ1puOGZAOzRYJkY6ZjFrLkZxWGE+czwnSmBsSikoNldFR2dMMU43Tj1RK2xKYV4tbSEiOlJuS2FhaV1nTiYqO20qS1RoRS1LJ04ibW0nVURVLkpwYVsyTFdARjJkTTc2PWkwMyZjI0E1RilJN2hRYCVGXSQrWi9OPCY1OmFnY0NoSkA7aCZrciUvNEZVKVxVUW4+RGEuP2lOX0lPXjZpZmFoJENoQUYzNFY2ZitBQF9PQz0iZEw4NTl0cCQxaidxLmwqOD5uUDIrYSMjMiQwLlhIZl5uQFIuISdNK2YjWjRoL0FlQiZmaVVxT3ROQVVQWj4iV2FUbSdQSCxpZEYpXC8rPi5KY1plNzkpdEBUakUyay5SIUhjZlZLOj0+JHNjZTJnU2YxXU9lJmM1Ok4+NSIoTDxmYHUzaDFxW0J0Y2VpYUljb0VASTBkR2EpUkQ9KnEnbGVBPHNKOiZeODNlJVNWZjJZMW5hTXRrTzlpamAxJGZjb1pNZSc9bkBFRk9qX3BbSilEKHJaXGE7NiojKzhHaFxLWjJvTCE7NyF0J2o5YVgoUlgvSGMhLzkpSUFXMTIsNDFYT0UqRGNFQDQjJ1M0bFIlT082Wj0nQzFFNUVNTk8mZz9LXy5iVXRKN01uLDVkJTk2cUM0bjQzLjRIUz8wdTg2K3RsaDVgUDwsOkdYZiEwc2JIWCZwO2lHRVhcZDpacTZIbExHVVNDKyR1LGkxMTQkPDY+VmNkSkpLME9wPi1sVDgrR2FpIk5ycFlCJG48QWxLdEQhcGAtZT1fVD9hSEVINykwZGYoakVNUnFVYFZWdSQsOC1VP0ZdXzlsYTotLlVjTj5nW1ArblJWXEFYV2FTV1hpZjd1ZzpBUk9ZNUcvOTpxMUpvQkFMP2B1TmEpcDRDWmFRdVI4UiMkcSVKQUgyYUI2RjBuJyoqJDVqSktWOUREblhGJW1cJXNQRlYvMj9gNyM0ZTlpPENnSjEtLFMxIzAqOGY8YDtYJztNXko6PE8+ZEpZSydsQFtvPm4zciJuZjMqZi88KygsQSsqZiNrWyhgZU5rZ09McGhzZ1lRU3QsUCJCJjsiZGczSSY/ZFBpKEknWk1ySF0iUEBgTzdqI0VHK1YqVHFYQjBQb2hWZTErJElHWWglTT9WTEJtVU4+QSVHRz1YUEgmPk1QQUtyS2ZlVGY4Q1BEZC5ANjBwXGEzJi9JY2Q3VmdEdS5AZlFKLWFQNEZxQ2JoYydXcCZvNlVxMy5bYkVEISwoSkYsbVpMJi1iZlc7XVxcNVk9IyEwbiFCTlNIXTQhajhhZWpmaFhOOUxfI1hnSWtIYl1KX20lMC9LPV9DLXFISFFLMlMtXHRwQS9bN05JP2BNMDZXUE1xM11LOE5pbC0pVicpbEEwciVlPEw4NTNxMGpKJzBTITBpTTsrQl05OUBxXkZBZVYvaS9AW0NrKDErRmA6alJQXUk8YjZLITRZZXNQTDhqWjM7N0JSWDhvMlxVcUhYKjs3S0FjWlpvNHRPJ3AiN1FwamRtXkMyRDU6OVJuXCxnbShiXFIiMXNISldBcz4hNSJKcjBgJTpAU2tQJ29FN1pldVQiO141REs5JGVKQjheaU0iVnBaO3EpSmpkTjpiLENkRmddLnU5TTVQYC1JNSxLUWpIdXRjaFpfJVVCT2pgO1YiTE89czRfJSM6KnRqLUxuKHRGK0tYR2ZjU0koKC4mVl8ubDEsIj88IzU/LDhTWjNKQmVWYVZhOU1CclstaD1iM0svbmxsayNGKydUN0I0KTdPYEJEK1hqLUtrc0EqK0lfIygzIyJWVk08XTcuODkwIjBFZW41b0RbWD88Q3FFLEhoY0YnbT5HM2FHZi1lQ1gtOVAxSWNwaW9eLiI9RyIuLihCXU8nK1RBRnNjZkpgWjwiQjJCdTwkLGJRWURwZjVQZDw1OHMvPEpHPWU3cGRTLU9YJ20/WF1tKmw0TDcpcW9GakRiY29iQkJ1Wi0nJDFeUiFLYDliWWYpYSxNSyxuJiU/Oz1LVFY7SGVeL2pUc3BNR0JJLmYmR0lpJVh0VF08bXIlb2NMNDJJXDcmLkZIZ29oOiNAaipsOCxiZ0c2LUEqMmJRZkJpcGM0cCkpQ2FcL1VaWmxtcDQpRUdtdEZaIlNEcTYzUTokRlBhIzpeMEI2WVpISC88aSdPaCNYYkRmXDheNT9qbVUucUgkbTRlZlEuT1lrNC82ZCM6XlEuWEhbYjsoT0IqLnRTKCQtSSFnQyVaazg6MXFmZlhNWj02V0lMWD47OXJaOEpHa3I5VS9rXGRWUyU7WypYOVVcPyN1R0JlUUUoYyk4O24ucT9vWzRrJzRcWiRMdFhcNFhdTlQzWTsuYylTaDtmWzkoIWdmVFM4THFqWitHUGJ0MDVGaj9CKSNAKS9RcXQhV0dSPlJiMVk9YVlmMllmaTY+ZUQlP11qWTFmREZ0NCdFbG9dPVVDME5iMnIjLk9CTlkvSG1eOjAhVVEzckxcJTpqNUFRTXNIXiZRakQ0O29rQ19uJWRFXyouTCZoYE9IX2gpQlEoUyVdY2NyWDJjNVciVH4+ZW5kc3RyZWFtCmVuZG9iagoyNyAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAyOTg3Cj4+CnN0cmVhbQpHYXVITTk2OGsvJlxkUjRvSV1ePCNpWWBkLmdLM200Ji4+MkNHRDtOUHFGOmg4QVlFXj1OaiU7RWxgL3BjTiJkai4/VT5BZzgyKSQhMC02cGYyIkE2aixddTc6SjY1STFIOWFNSkUrTF8lWllLJzBgKSJBQWdgKSI9SFZuUEAwMElEcWp1aSMoJk8rNixrMUtFTSYhaGtVazZDZUN0QiYjTGkoYWFEKk5VYiFvTEtCXnBtQ1tvaCFJVF9ZOS1iZF4tMGphOjNOLWkuWjE3N2VmJmEnQW5AUSteXTI3NXQ8OF5EKy9VZl81cj0zN0RoKlc/QWpSISFcUldAJGVGQ2ghZSlBQUgtOGFCXzJYQEM/O2UlPSkoWEEhIUMhbDk3VU8hdSlwRWIubGxBMERAaSRbQW9FLlVAQEFCaGNxbTYlYlZTJVhbSWNPWUdpczRtOl4mUlg8YzlJcU5xWTBYa3JkIklmaSs6UWBvLkFdJ1U7NCF1XjMpODpcVWJKVDpAJ0M2Y0tjZjFecFZ1MGNtaUgsbi08ZlRjNzIpIjZWLWVrZj0oU29vaWpOQU1DXjAvYFopWjs5U1FXcSwqP180I21DJGlQOT1obTtQSWo6UHEuNy5bNnNIXmFHTTJhVlFMOjlMJiFCSFZZb1tNKjJNLjJJYjlpZDhVJDJbIkRBQVhKLD42PkwmKilLSWNAMzNFdGU8MGE4NGEubig+YmEiKU8nT1heXUUmT1lpRlI2c1ksRkJMclctZ1liWiRRTzgoWmtQc3Q3YWBWcWxjKVdCayQwJD9XIU4kNmY6Z3UuQVNCXGc3NyJBWnFAP29cZEFgRnROKlFOPTZmLV1tOlEwNCdfJ08xQysqWEw8dDcwaz4xY2ddXFRJWW1mM0gjYD9UbEBzPV9WMCE3RnEtTUJrWUhVQTI3ZyE3NktDUXUzRDdhMkYydFlFM3EqLiw1OEhdIjZYLS1NXUsuckteLCdcR0E8dCxhcD5CISNhVE01VCslUStoLS5sYz0qOiFEJU1hP3JOIlprPykucSZcQiJKc1JxSiJDJStaZz84YnBNSU1zVDNuKlkyNHI6LkAvJjtjK09pNV1wYy5bYl0+KVUuSScodFYpXkw9KlVJdCxxIWNDNypZPk9nYSFmYlIhNk9nYktlbW1yMSFhSTg3dEE5dSZdbU9uRkpjQjdVPzhYYG9GLSYiKi1uLjUoUCMqXDdRJkEyRFBhbXImbENuQEUmMF9GY15rPls1bmAlW2hja0RcSVA7RyJASzIzTWFkTDooSjRYU2o6IyM6VWZCL1hMNEpYPVMoTGpwOENqVUc1LkpJJitPaDY1Zzd0SDNpcWhbcDUkLTZJbEUmT1xdJkNoRT1JVVBHOkdzJEJCZUxHTWY2KjsiOy0/LGhwIzArVyEsWW8lSV9TVT0kLC1TSEo4dWkyO3FNODN0OkxcIklRYk9GIT1tcGs3MmknTStMP05jJVMzO2QqVyVZV1pCPENddCUlSktYR1pcMztHUkpeVFhcN15ZOUctKDgwTlRKbWw2bFtrLSRML2ZpW1tOVyIkLDdnLkoyKEwuLmhtJUw5akxXSHFuOTpIX11JIyhdWnNeT2BHJT9SRUluMCtlUWVEMFxhN2JJJUQrb1otJ1AlYkZqdTcuRmhQJSJPUCd0NkdRJThuPU1JUVBfWF9qPEExb1VQU2A5QTxzNEkuJj85QGVvNWVyJ1NnJzZpXmprTUVqPGQrZjctR2FQJGtSIS4+NzFIUE5JVE4tXzNtWDlVNXEiQ29WS011UDdiW2AwSTpoZVhhRzRXaklDOidaLi5kYUJwOD0qK2NySEoyNkQ8STtNV0ExW0RuazdlIWI6PlU7JSphNFI7W2lEOkZbblhbbUw4USxbI1whI21iI1AublNOWD9eOmhBWTBuIU5zLTxfJkdiRThGX2BDJ1lVLkoyX2o/OSFFT1ZyUT1zIk5RUG0hRj8zL0lGQ1Q1XDEqRFNhdGNTaVJHNFNhX3QyYkUmL210OEhsLk8hVCRhLFZuMkgqM11vbXEyVWs0JHVuaUlObiwkR0ljTT1KKWQ3Q0c+bU45b0JJQUE7MWczVDY/YTBXRlxxakpkbWFPWC43QS05IlxRb0MiJzhINEImKSkiKUo4IScnUlghcEh0Jy0kdFNbTjMuRlg0WSQ6WnByamwoSC4xPW8ocFVoMFxkcmk9Ozk+JEVVIkFWQS0jNj4kJjdXOSpJV0NQKDo6UjRZUVJubyE5O25pZi9cQHBVXG5EK009aCRKNkBfdU5ZUWBCMW47Zy5RQFJTUW9HWUFCdStEPGEyO2xzcHQmW007VyFTIXQuLClCcitCb2ZQQTduQWo4SUR1IWw8KVMtdV8rTyxMNTxVWlo/cGZVcVpYISVfLC5SJUJPJFNNLmlgP1IxJHE0Kz4xIS1sOmVqcVBMLmpLXUxKRixLQlAsSCM1S0k7QlYtXTBrQHRoPlIlKD49LSFXKGtzTllJQy8sPz5HKmNuNmtkLlA6N0NSKDtOJ0klXzJKOEovVmo1VU5ATkM6KDs7LUFRIi9mIi0qJD9fWDAzPEZsWiUqYDNuTyMxTmZedFRtNlQ+MHIuUk1vaEE0YisxKXRZJmo6bD5VaztEbHFSWFJpPVxnTFxfO0E/WW1ScilHQE5SbikqLDpfIVpbZCw4SFRFTFwpQUk/Sj9WNXQhU0JBU0U2PUNRcj9WRy41W0c5YyhmSlI+U0NcPCxNUGBldTktcm5XW3AvT1dkNz1yVExVJjM6ZjhBQ0VsZltsdVIuQEBPIydXSzllRVdkSFstaXRRUiw6aCVpQE1MMkBWOFApV29qajxrLiNPJmhJZ0M2M2k5OSolU2hAOmwib2tDYVJaU1YwXVA5NjVScnAqYkVqZmIua1gpaSphXEZfOjZAL0c1LF8wS2VNZlNMSzteLiUoRydTazQyVElcO1A6KUM5OGFaPlZPWT1SNlhzOCReOi4xL001PSJTMzVuTSEiSjgnQSkxaiRsOGExcF1uZUBEMWJBM1dcKiItbVopPzxGbDEzPyImMFc7QUN0X05Pc11hUzJxWWFuTjkzP3JdJUlScHJYS11IXCRFPTolLDckQTJJI0o0OixmOm9CdTBPKjoxKilGcVhpLlNUZjFrRW5ZTipnLm5pQilxdVRra1BxP0tHODEiP1NiSVxPP0ZvX2w8MUNSRmhTSEhUNWJEVVhWMzNzRW89S0RUbi8oUSxcI3RON0okPlkhI0w5V1cxa0pkPlJGTkc9JkB0WE9gJyVBYipHdDEiMkk/LTRyK1wtPzwuL2VnWi5rSiE/MGUwVjNiWGA7P3RzSG1VciZFIiczXk9FLS9AVFJPc1JQbiJybEEyWHRzJiszQUFbPDQkXShEbjJuZVZmMWYpVEFgQmVjQGA9ZUpFQWMvVCdALWIzNTJNMFBZMko9Ij49YVs8YjpUbnAjJz9JbTNVYzVeJHJxRmgqXjtOL1VeOHNAYGZnNEQ+T0NoKitmLThEXHUoNz9LPV0wRUAqZ2MoWU9aIyxFWkMrKDFJaWNqU0dNcUVSWVBsazFpQFNeSjEjVSM4ISoscjB0Uz47ZnM4NE1yZCZuJnE4WTEtXFM9Ulk1PS5oUjRYWlZ1YFhPZVRXM0A7Xm1OOmxnTjNZN2ZBaVooQCFdOkUuSWlaM1U/O09oXWZuIkNIbCZaLCtXLF1mTzFrR0lmRWghTzZHTFttWlVbTERpQkMyXio3bllaVGNfb05pXDVCc2U9OkQ0N1RNaDVIVC4mYjk1YGdrSEQpWT1nNjgpNG5SOCx1YVpIODAqUixtQXNXUU5sWS1TQ18qISNTKytZQVA6SkIjS25XOi9kXk1xTCgvXS9FOiJIVjdVSkUvU1NkQFhoN1prZDhWRExDWzsjLj0tZkRhWiI2Wi1ib0xpMVxPM2ZMY3ArY1tObSkoOl1bQlNcRidVPCJMKnM2TzwsPFliaGJCXXFtakAxRyhKYXI3LVBWRjF+PmVuZHN0cmVhbQplbmRvYmoKMjggMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMzI0MAo+PgpzdHJlYW0KR2F1SE09YGA9VyZxOVNZa19GUl8tNU9NclImckoxYzZQSk1FQHJiJ1s4aFssODRaJ0AmZlFqclVdJ2w/JTo1LTVhXHAtZDhMNjhcIThabDxuRl0nUEQjRVZfczNoJi1ibVtwbEYyMmQoW0srQFdJJGY+NGhlJE1OU1FWKkAiQ1ZANCdgNEteSywrOUcqQDEuSXJMIkQ5aCx0JjhBKGUiJFxlKlchams+LmQiVSlQWFxVY0siX3RALlssZjRbUC0wW2ciP0s7O1MkTGtubEY8Z10kXDtCWyk+MSpKTTtmaWA1Zk4pUCcmXjFUTD5VaWxWZSpDMGw7OFxZTTc0amNRUWdnO0BYMTthakssWVc5XV0vVFZBaG9eci9cSCFpYGE/T0o0M1cwJGlaMSs6QGkkXGRrUV9Uc0BIMTNIblpVZltwW3BELm5mdUtPKkMmMVZsSjhBQUU6TkpYX2dlaCVuRXAnMjZeRC4yY2FSXjxMXVlJcF9wR2FDYXBrR2ZFRk1HPUZnNHNrI000LGQ1Y11QTV5xW0ZbS0lkLyUpYlFQPFxbTFY/R2VUYC41LWxQamFCN3M5QEY/ZXBNYVh1byxuTURbaldrLCVabGcoTVtyUj5rQE4wXFpaSnJyXFdVIy9xWWtTQzJVcWJgRSs8RzFSbipMTmYkZ2cqMlpZXi5ZRzV1UWI8PSM7TS5QYmdUKjdHK1FiWm5oImEwIT44OWRcSzpIbio5NFVeV0JuRihGbWg4UCVcS0lwMSFlLm9vImghSEZYZG1abGNVOilxO3RKLDFeMUhUPFJcLzZUXGc5RjEoTTIiVm5PWDhjbFllc3VNZDZtcFY3bnEwVj0lVm1BP0NqVUZAPGlnQUkrSCVIO1NpM1BdRmlrWy1JMmd0Pz0ycWVLYmAlQj88cTssOF8pJm5tMktkPTJsNVxBMShIIVshZk9WOSFiPTZLISxvKTVWT1owcEhuWmtFXHFcSDpuOWA9bl5FbHJEWi5GNFl0OSZbJDVdUiY6Z18uZ3NcUCd0Q0lRV1VFI1JcZ0UmMiZDTSMvUT0nMy9cJSYsNjc9dGcrXSNuJE11KG51ZDgkNU1pLHVlRkMqVSg7WHJrT0klT089JCljbCFWKC9cNzNYaS5sT0U9S2NmWUJvbGVeU2dTLilvJGs2I1AkLWAlLz5SREUkcGFRUyU5RFBDT3FCamNRUGBiKSUpJTMvVDFBL0xBaDtUSTZTUlg0PDptZm0xXVopaHVhUjA3bEVnNVxmXDNNITA0TWpyPklpaF8kOWpnXGJpVlxoQU8kVG8+MGUzbV1NK2k0WmoxSj5WR08nNy41by9pVmchdDJPPXMvJWghMnBGbmJhVTRtMylJKEtTRGspbFdgKiQlWyM4SXBzZTFOPzFWUXFMXyE3YDRGUFVdMGY2aWFNR1knSFxoNlFmdFNNZSk5MTRCJTZWODkpJzZhZ0tUaT1tb1RBI3NidTI0LDxLQUl0TFJWKl9FMFdcLyZyPEVsTC5qb19DRko3dTZiVkoiJ0ojdFFEU142MWJTY0tDNVY8JGEybjJQYTc3anRjPik+W1JfOUUqUyxXQnVsQGw2P2dTI0E1bU1pX2c4MyhMTlJYRGk1XUY9XThoaGYlaEdQMEojaW8pXz1WYFQlWTgvcFVJa3FBSW9cIV0hV1BBa2IzW1kuPDcwZFlWIzg2SVkvQi1mWydbcCU7cEFTOEs/MWsrV0VjR0soIl5xV01fTU1SKXFyZkI/Ui5iIT8kW25TdUJwTFpBOnJMaWQ/RVc7WXBhK29HWkBbbjsnRlshZ0srZjJDLXBsUFxXJzE9UzpIQ0FpK0lnOCY0LFNJW2VfaTslQlJCZUkhVlhPPzAjbVFyLFlcTWdfUFxSNkVlLD9oZmVsVldEaCtKKkJhTEJXRXRRPVlWVTpzaVRJOGdDRjhkV1w8KTBnZjMxZmFcQyFbViNEQyZucnJjPGdfVF1lSSpNMERiK3QiUnA9R0A3YyYxJChrbWp0KG9GWUgvWFc2V0YmbyE7LHEkZC1ST25mMiwva1pgOClEaSYuLGJoN1w2T2xSZDVjQ0JFJU5hNV9QQFZFVytKYk4lPSRCMisoR1NKVz4uPmw9UGtqR090MSdnNlolTE01LmhAckFZIWEyLEAzITxSVipJTjlaLFNPT1JdL1YpJzRScm5rTTlBNU0tUTUlX1VeUk8+NihXIm5HTHNkME85MDcqanBnRGZFWjM+VGAqQiJvWkEoKThVUTldUz9kRFVjP25INDNNI1BqJFp1TVRcaTZFO106bTwqczlCYDclRUp1TDN0a09qIyxLUFJQX0VyS0kiVSEiUD9ALkU0NSEmZ05nWmheMzVWKS9tOz0laXI8UjkuLW1wSzZvOjBibiNpZyUvXzhXN2tBXXRnJGtSU2FpdFQvLUlqS21cTGNYTDJASXR0UExAUFY2UE4waDJXWGJaIk8nTCFaVGVKXUhWY1pPJjpFT1UvX0o5a1pNXUAtO0U3KXRGTlllPiVEck5zZy9XTiNiRUMpXEtIR1RXVlQpMllGLVBnZWdJQD9vXTNsYT1BXz1pYyE6Xi1ESGI3QmdzVVwvSGRbKWI8RVA0cl9vXHRfZVI2YV02XClrKidSJks/SmQ9YGxuVDVoaT0kIl0hRXFcKG5obWsjay08PmZMaW40ZWFjU2lZKywmckFFYVFxaTY4JDlMVyllQE9QIzBYJ2lPNiYnJy5qJyhgZmduQnVVVGRfdWUsZFE7I0BAIWNhTDJeMTEvOztMKkFfIjltbCFeZUxaJUckb0cmZGpASyhBIUlkWmIsJFFxJjhbJ1NaWE89TUhNNyZMdFEwJDtXLlYhUzFvNzlscypDa2A3L3RPJSQlOmNJSURJKXMrYlVQbyhyPFBbLkFEbVwpXGBcZDhuMF8jP1JuJzdfRE1oY01JMiMjVjYtLChBZHBzXmchbSVWQz5HOUApQ05yImJucWhQPm1FOWc6LGdEUkluO2pYQ1AoayJeWzE2MjpPSS05MC5eYCppRz1rTFRvZiJjXC5rOCxJZlZhUkMxVXBwYSIyOjRNJ1pXbU85dC4xKF1fMSlhV1syTmMvYyFuZGc7QFdrRmp1QD9PTFolU3ReOWEiWmJQX1ckLT9xKCMuQFciJFdTPyYmR1RjWmJzPj1FXlBsRV4lblBTKi1NTCZMRmU1P24kcm9EXk83Qz4zRC5JPERAQW5GcV4wWVw+bmFCO2U3dEIiTzFSImMjYTA9RyFbdG85K0BnQCEpQGNKXVw7N3BdSFltSVdxTUdPaFdVOScwYmcscGA6aHNgSTw1cyteMFNCN0xRPDdYOlJHbFRQXFsmX1Zna3AuLmoqMCFiZShic2srJm0mNE1HLCFbaSZqPC81Xm5uMFQ2QlxSO0ooUSZCcSxIcUAzN2FfVT40VXBHKHAvQSY0ZS1oJyxzPy5cWkJmVyFJLiJaWj1hK2lUVz8vbCw2XTQrJzA3cWwnYyQ0QjNhOTc+I29kQE5laEwhTDUjVClkYiQ6aUY6T3BFTGxEIUYkXlNxa0NnJ1VjX20wIT4+QXRHcF1jJFkoWmlHOm8tMS1iMylHbTAuNypdND9rP2BbOz1JRGMrZnB0N2hTYyNnKitQZ1M9ZkQsLEZjIWkwPmBYWFJgKkgoKUwvYFVqLUBwTk1hKFRRRFAycjslWFEiZjd0SDViWGJCJU5FQXFEWDgxQ2JlVyFAVlp0KExJNXE8OzdqbUdgO1RTSE5GTExnVTpvUFM3b21Hcm9hKWo7MTJaSV1LLDAzP2pgK1FBYSxQU0M6WyM/OXFMbUEoOEhSNWMqKFJdRyFbMjYrTztXQSJJSl0lRDhwTE11O0VvJ0UwZTRAXjlWa15VaCE9WWI5Qmc1OWJJTUUiLD5wSWFta3MyPFwzOk5DTTY3IStBTDNbO0ttXXNAX0pPM3FWZzs8PC88aFxuV1ZDWjU/V2xxcyNMJHVRcE0jTSEsSD1cRShwXzhIKUw7LC1bQVhJRDNpIT1RRGZvQlBEZy9iSmtpRVxxNT5nXlIkZ01XZDhUZkFKTnQsbiIwU2xIYmhUKU9DOnR0LnJiNzttUkQzT18yYDAoJFE8P24uNmVIZzJlQmpVP1FINU1YQT8iSixyZCljKDFNR3JzVlhlczxLQl1oYl1KSERhU0hfIklqcDcvQDBBcV1SWzs4XD8wRUhbYmxdNXRaI3BwTkg4ZHRDQHVuOzk0YEFDNypGY2xUaWFBX0ldJmVoRCNXQk0tODg6PztyMmpncEVPVT4wblJJRV9BVjkuMlshN0dYVTpfYmVDJDYxQEM6STV1cWRyckgwXWhtaX4+ZW5kc3RyZWFtCmVuZG9iagoyOSAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAzMDA0Cj4+CnN0cmVhbQpHYXVITGdOKSUuJnEwTFVvVjQwTzBhJy1SMi0kVilZOiNhb1NdT1Y+LyI+NkJeVkQqPytbWmtMI3RgTm5yPnBKamZwNDQkUSYzXGg2aXVULGwtbkhyalBrc0pzLSZ1OkRfbF84TChYI2oyQ0I4IiFSNihrZjxeQWcoSmElckUmJl5lTT9CSVNqTVhARkwvW3M8bFwtIyNwN2U0QTNOaE9ANEdtRmpuXz43XVNBSENmXVEhP2dVUlIwMjg7KURRMTJURT1JY1ExYCJTZTEqaV5OVl1ISUlDQVxNK3QpVU0pPDZcUEQ1KiZePj43PydoUmtgXShLaTtVXGlNOD9HS2UvRWRtVi9hakIsO25EWEBqQko9RS5UTW0/bS0qJy85WjdDLklBWVsuPF1rSEAzOzFHMF9CPEFZJTJZbSJpYTlGaW1jdXIyLllySSI/cFY8K2U9L1pkZCssbjZJZklhPU4nPysyKmxvOHBhcSNKWUtpJ2khPFZQXW5eQEZUPEExVj1uWGZHR04xXCtkaDZMYCxDLDVTYnMvI2BsbW5wdXRBSzA3YGxAYkEvNmNvXHJRJ0cjQiIjPkVpJ240O1dPZDFmMyslXCFNWjhUJUBIZlpPSGxIJzxjMStFSEhpVFghWlcuOzhcX2M4N2NRUC8tQ01LUTQ/OlJGXk9cZGghU2puTWFpLFJeQVBkND8sOWU0RWBAS2ozdT42aDB0RCw0RWA5LzRWWzZkLWFoJTRDPWY+UGYtT1llYDxqYkpDPHElIyVjWksyRGZDaENHZkRVL2w7TC8ybGFzRFE7T01MIl9IcjFVOzQ6NWc+VVNEXWswb0svZFlhLTNhZSZnV0dYKy9zWTRxPjcsXXU6UEVgKT5tVEgpViNyIW1DKio8PVtpRlxVclYjOW5gRSIjQWM6MUctWUhiLjAnLE01K2YzcnRPI1RyYV4hVnBuS1NaVkdDRFpmUjtMYyVTXzBrZUBIaVFWYCYiM2EiKjpvNkk8PVRmPCRaOGY1VnI+Wm5ePWA4NW9vQVwySUw3JzE3ZUViPWxZV21PZnFjJFA5LGhMcyd0Rj5PUC1fVGxRUSsmaGhcIldoYFVzMTc1N1ZkYi8hPlVTPW0/OTNHJ28+K008J1VqUkM9Lj1MaG9HKylAQmtgQV8qQyxKVDRcMj4kJUdzdHI/UDlvJUZYPyYjbCJTWGc3UyowTVZBQEYzM25wYko6bTBta0BBXGYzQV9YJklIPj1hPUdrLUUzIkMtSEsmXElfM1g8S2toUGRRSmlSQW1LLGxgZ1EpJlhDTSFeR2FfN3JPXzwhbVQxdScvXmplJnE/PXRJZSRFUWttPFRbM0pOZHVOOFQuQEsvMCI4Sjk1ayplQ00rM2dBRk5qJWpTWj4oMS8nJF1PL1MvTG41K24jKTg6MVNfVj0qQVc6SmlGbj1OQm46XD1WKkBjQ2A+WE9fVV5hWGBZIlFMSGE3Yzoia3I7TDVLb1ooMjo3dERxPmhNK00xPnBQOllrTGcwZyNsV10wZSkmPWxlQ2w3YlhPSWRaaTVlRzJqTjE+Lz9MYU1nSzFdZFhtdGtUZS8pJWFXK2I9KFBdOGBBN05lLyg+SkRhR2dPbjwvRXM4RmBGNT5GLiNSTEBqPEw8aExFMFVmLSdGR24zbmVraDUhY21nT243LzkrO3E4OzY+QFBFPE9ZRCc4bzxKcT4xQnI8aUJsX1deR0ByVWxvN29RQ3NNLyo5VGpEY1MwUS4+OVElJE45MlY1ZTkyN2YlZVhgUWpwQyslbHMuPzojIkUwYmhcRkFmaDRfLlRbNkcxa25BT1U0ZlNkTFZsNC4ybVRULG8uTGlmMlRpcHVYJS0pKXRbZypxOSU5IkM0ZFknbyROPG8yKENjXE1MSTNhXkUqT1JwZkZgMDtYRlRWZipXZ0tKYSJkJWI8W085b3AvSklCaVBKMSwvQ2UwVypRVUsvbUZsPyoscEB1Qz9qOlBPMztAdXFBSWNYQGc7Nyh1UUlsNlFhPVlWKGMmXnUvSW5JQkUmVFArWS8oYT9rZipfbT42Z0tMWDVxKUZBW0JKaWwiKlhgbVtuRkMiWTxWQmBTbjNZcm9WUUE/VnIlYWZkIUlLTDZkLFQpK0JWPWpMLmlWQUFLLihjSVdYRFBDZipHZHQ+TTtRV1RoQEtEVElcN2JObm5vTChob3BtXD1DXzNqbWJVbGRZY19AJ3BhS2Y1KjUnK3NwNUtwaXFgIVlBcEJHXXJpIW1FLkRyUklYXENWJ3Q+bFBkTmxLOypUXzRURTJJSGUwMnI0JWNrSC9GJGFoblFwXUxHM0k0cFgjSVNqN0IjUiFka3AxZjJIbDNdNFBDQmMrZS42W0Y2Tls+RCVgP3BsOWIycCEjPmlyb3B0QCEma21KVCNkWU4yZzVrTFJjIVxFMlBvbWpvWnBKYj5uW2U1QWhaVD5HJkUjUl5iMkRzWzQsJVRcdEliUC02TEg5ZUJdY1g/KCNHVE5SaWtgW0VkMFlAUihmKzReSjlMZmE2Zk1cJE4+Ml9IW0AmJTlzZzZnaStBKHFMQjtmVVNNbTMvb3NDIS0/I1RaKDE2X1FDPU9tQ2g0WmJgQ1EnXiNQNC1FajxMQzMhNldLWmNRKldcQD5uPVAhblJYOjwrJzpSa2hrMiIwRXFtR1dGTWU0SnJEX2Y7PkhYWiRuI2E5M0NzUjtnX2okaG9LJ3EhRS83azZkY3IqTmFDXFdGI0gzPUJiQkA4JEc+aXFITUlOa0p0Ti9cYy1cSy1KSjQuaigkbzhjM1ZKQ1thKkxjLk1WL15RaD5yZF1vKEw/Z0pFcDBPSWFUPTVISjZTND04L1xSYF5WW14+bjQmSihXWlQsLC5tRmAsM3BMQU4zNm4mKj1NTTpGYEgrJ2FiQF5FL2lAQDlCaUBnRiFGZCNzam1GYSNhLyteZF9DRzpAS3ExZGBCVTRmVHRGcUwuXVImMWlXRkpQa1NQZztsLWJpYUAnUERLMDAwKV1dYTNUbT9tPzAqJl04Z3BSXWJmQkwucVxFOShYJChxTW1GWGlLQWdEQDwyTk47b3FGWjxNXEc2dTVYUUUmVGRvODIqJkU+UCtiKE8zYltLVD49TkgzaCcwaSdyNDohIlsrTk0qY2dbNlwuPGNCZkEnajppK1MrZ2NfO11MUTNySmNWYlw7WjckbXVRVyxCWSs+PG5gcXEsIyYpQ2YjZyp0QjBQRWFKKWBCO0dbSypsRXVOJkdga2QjSk1fPWBdUyRSQ0YoJTFkQDdgKWUmRzBNL3NeZyU4ND5vJT51Xz1DYzp0WzNKbztuWUFCRTgxOlgucklMb1hHOUIkMWktST4jLm5zI25XP1daYWpkVjFALXNKMGNQVUYnNy4lWEtgTHUyQ0tORCZwNFFJaDVaa3VcJUY3ZF1lV1k2JTsnQz04WEAiUzxoRWM1bjRlWUNhWiFBJlt1LjdtVlghanVtPT5UZCNdO11ScSY0RzFaPkNTZiI/T1FXKUMpcUJERmBNX2snX2tQIiFsXjooXmQzVGQmN2xxJiVsKENHQSJCdGc+TDdvcyNFL21mSiRmYihJNERSaXMtIVhmOHNrOm8zaSouQDhTVywzX0tMP0MrSUghJSxvciUsTFBjKjJvREtvQ2RCQSEoLi1kUTtwNUw5ZmQxSkkrQ1BBJ2Y7WkgwZjdLcC9cWiJmT3JrKVRmVCNWZllTZ0pfQEZqRVBKUiwrRFxNNlxzLyI1V1IuUCIxVHBxbjxMLjlBTFVJQVUiMmk+RSxZckBcKW5IY1kjKExJdD89QWQhW19BKGksN042TUhBOzI9KEg1cjk3UXI4NnUqLzZNMkBCOkNlaj9bX0M3TGU+ZycoaTU2bl88JTY8cSUvVkU+aysxQFpTbV45aW9MR1kwTUkvNjMsOUN0cDhfXStAWmM/ZkU4KWhqU1xaPkMvZWRWSSg9TjgjNCNeWjFGLCs9blpdM0Y3b0NPaGQzb1o6P1xYZCIzWChKUF9HIXU2MDljMn4+ZW5kc3RyZWFtCmVuZG9iagozMCAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAzMDM5Cj4+CnN0cmVhbQpHYXVITmZsbCswJnEwTFVlQzBCKmEuYG4uYislQy1TNzxyNzg9PyE+MyJJXEg4YSk2PSleKTlIbiMkL2c4dXNWSEZGNF5UYClfUnJGX2QqR2ZfQGhYXk1zVk1BY2gvSSJHZC9EKSViLWI/dWNLUlBFV2FWWE8mLD4wRWBuYjRJOjsjNzonWyk2aGtWQUBlbTVqYWhUOWltQzddTE9tUTgybT1nWFJtczE1WnBLZi4iNSxmJiFFPzFXK1hIMFVAZC4nN11eXlskUiQxWkpnTClwQFVmKmIsJEJRamBlWGpFKHBSJiJcSStiYGdIRT9RYmFpKktzLCY8XltJXD4zbTAsY0k2TVVPdWUtWlhQKVQrcWFEXWdtITMvP0dZXHVSL0NRVi1haypjJVRrXjxvOCs3IzdUSmQ3Y2Bgby5qbTxCOUtzJ01MY1guTFJxWV5YOV1jNWYrMHFRMiRuUSMlWmhIZFtgQUo3PCNIWyIjUzNuZGsiXj8kIkAmTDVqVFFUUDtoRm9vSGAjc3MxQjE5JWUpITJvUkVsdTF0O1E1PzZEQ0UjRmAzSjFhWWBVQEllbT80XDs0KjNpSiUrMCVSPCpSYVZLJW8zRT4yZHVwNS0vaVJgWUwubUtKJmsyS1tXYChMX21WWz1lVUA8InVARWgja107UGlpPDhqblRkUztWO0ZZRkAkJVgzImYqPW0oKUJSWkNeIkpQPWkiYCQ6Y1hJME41cmAqblZvU14uQVBARkIrNGZ1TWRxbERIJUBvTSlKKmI7IS4pTi9aWCJlS1ooVCZSbjxsSVIiWHUkamo+PmhRU1xcM2dhVjwnTEFmcmsrcEliWl5iQWtqcVU3SG1ublFCIjY3SDRQJj5HWFM6YmZZbUFiZkpcRGk1TS0tVmZYaCxaK2JwLkMxXjVPYCtLTi5cakxcVVs+KjVUQks5c2dlcigybmlOTmg/WjEuamNWPjdKMTlHNzooVmNSPGshM25VNjpOKG9ScCheJmluRSttJSkkRl8xJS4uSjYsOVtNJXI8R1E4Wm41QSZPUWxCK29UNV9JN2tVSVZDSE1AOkNxSk5eUm1WL3QmbSFHbWdBT2ltZipNRVA5JiVMV0gkazFgZSdDdDJyay4vPFJuM2JOYk4jWVRnKzVGcy03NmtaKC0kOGY4OSoxaE5tQjttP19AdD9VbkMvVWMzcWIia25hXkssWXRDRTI6bG9MNm4pV0NvW0w2V11bc1s1XV9vJj9kWGdsVTVoW01TNmI3Pj01UiNnXGZwU2cmQUFlYXEuIUxhUWdgTylFP29CXmkwVV1mQiw3ME0sKl5tbSonYmxoV2s9aklQcnUvRW48TTQkQmQlPCdqQWhjcS88X3RALUxwcmBwTnAsPGdiU0FhdScvbyMnVGBtcHQ+TlRWK0NYMV86VipAKTQrVjJyamw1UHBBMShjKGJeO0xYIWJfN01OV18/PyVMUE5KUllcJlhObEtdPiFAP1FILiE4NCtiNVw/RS1VRFlQTUsjakBVQ05SKEFOZmo4akZoSGRcLCo0bjVeSl5YVzw/VGIqLGEyYm1MczBUaFhPSW8oTmYoZUlCanREZHBrRiwuVWtgJ3IxWlFhJFUrLmRcM2ArNT5yTTxtSyVDJ1FQVWgiLy4qPzYqODBobF9IZDE2a0lrLjpWaCw5Nz1BWCxSZkJLL0ZUXl4sZU1CMERMZ3RoNkF0N2M2XHNITTw7WSlDUkIrQCQ9RmIyO3UlVGA5KCJJKEM1WlVxakJsYyNXKWZXbzZkIkJsYyskQFY2LV0pKVRNbk1IWk5ULSZiQlluTTcxKkAjYHRtRipDRSohQTBQVWY/MCY3Y0NvWFdJLTx1KVorJUdPXlBaKGsuOUpfYi8tImAkYHVSPkkmPjZSRl1WTyFfZWRXYW9xIVdSYVtNJVQ2cGtWNWZdRU1HLV0pPGxaX2piV29NI15uLFplTDNFSl8ncyFPa0MrPFY5OVBMKENqZTBHbUFPKTxTbExFRE4lWVMoZkQ5OjJnPExOIzooMkFtaUxdRmZrZFt1JT1JOyVCbyY/OHJtcjEySlNQQW04czQ+NCg5ZCI/bzBlRUkxYj9JMkZSXVBgVm1lUGlQWFs4MyIiPT89Kkw2K2I0R10xJCZxZF84S0snRGppKXJQRzwlSTdcRFFeJyhXUWExZktNPztQQGZeQG9qI0tCT1xjcFNGcHNOP3BGUyspKkpLVl8qYEU7YUdrSl1XLjYtXXBgWT8jZzpmUUwhMjBJQHE0XkFOS2cpMFUkSzNRXiZNczAwSDYnPEshVz4wTklMX1tHRzxfVjUnU3Flb0gwO2BERU1XInEzIz8vczZeTVY6Tz4rQTFQVl4xcT1PK1M9czxVQTU8STp0KFpNIzZdXWMzTj47IkZ1JXFKam5lIkk2LmNSI0hgYUctdU8oOGUvUj8vR1BrZmhyVFVAMkxPaS1BKmBjYShzKnBCTm0iKlxqKGNsTjVIR0oyb3FiNkJoRWklZWh1SiQtOygiLEwsUDVCVTU8bUUuLnUjKkA3Nz9JTjE/UmdqQF0lY01PWC0rM3VyZWhOMzcnV0BfamktcysyMFNPKk5yTzBnKjJTaiRwRGpOVVxEZ0cvTlc2IzZuJ1JnaVZDI2BrTGAyW0U6MkUuPyZSXkIoQnU1a3JlUUhGVHI/dS9oaCcyYjxwMkNZW2olVS5bZStqKlREWE0+JHQ4czEoaCdyPjpmT1tULl9bPGlVZEgiKVQ/Zz9xSTsrZiU9JFxXM2ZZLmROLFFgT2Nqc1UtQylhbio5TGM7M1s9PSpULWNcSTdhYzpqLTpWSyo2YiZmaG0jKV9YaGZdNyJNSCZGXEw0bmw+QVVHQGgyKCtJXUE1aT9kbmBOLCRGTUddNVxnLUMtMyRYaTdcS29YNl9VP1Q4MC0wOUAyMmlzQSUkIS5MLmYtRTAqZixlVjphN0BvQVdiZCU9KikmRlIwa0VLXFM+LlZjZDMxQFM9RzphR2QyKF8yUC9eOmVsZSdfKDBoZFRLTTU/NGJZOmplTko/RFlQaTMpUGloPWJUci40WytHRDw1RmQ0S3JKKSZfcCQxT0tucTlvZGVoRlZxbFRAOCxuM2RQMz4vJ2ZTakhTYyVERyJfUzppIkVPRkA0SFZlOlQ9OjRsM2BSPkJBZUpeMGBBUTZnUGlkTVk3UjUzZ2g+RzJIJiw9LVBOcmtsdSVHUWU9LWdKUkoyJXM3Wm1HaCVwdGF0XkgrXSNXTXBkZTQlayRjW2w3PUZCLF83LU45azlDXS0qNWFwaGxtYEpTcjFoOVQnYm5GOkVyPUVgZlZcbEgrcGY/PFhFWzlTR1tJI2dYY29HQEQpc21ZTjNPR2FCUzgncmJgYFtYWz8jc2luRCFfPVFFRlclRlA9YSpAXU5sP0plVExkb0ZoUUJEO11DUmMpLWBpPWJ1a2djXSJVXnI9Nz8sakRcTWIhVUdLRXAqZUE0ODJdWjRBIUU1KzlWKXNOTl9VW01dbWVmJSpRTiZrXmNNUW9qbjtpVWtgSjZdISptOUkhZFotdXVhOGtrSDYrRmckSGBxL0ZSTStmXCVQRSZhPGhNPHJoZ3NVa0tlXUpcP2hcRCtjVGReL2hdcjg9V2xCczgxVU8nUy9HOkxhcjwjdV5eSzg9XzgjKSZAUEU+JmQoNW5IMi91b1VSUVBxJipCcCVpM01KUHI5UCsxb01bYU9OSU1ORzsoZkE9SiZOYj5RJmU8YiFrMTo3P1RqT2FYVyknRSVPOW0+Vz9dUzhiVlxqUW5FXSZBT0hVK1g0JE4rMV9FRC0maFVSRiZTTVY+YUpRQjo8ZEZTI2ErQG81XCUrKEI9QkVvZiNCR286JHQpaF9dMXNFO0UuTWUhaFxyaDBbVnBaKyVzR2p0cSIhZSRWK1ZUQHNtJEQndWVzVURwNWhMamopL3I7SVc1ZTtmWCkqcjtpUmQyZ1ZQNnBKKCg/SVUoNVZmcCFiPkBWa21LKVVxKz5OKWBhZmduZSE7VkEyZ103Jm1cYyo8JWhKYSledVRjKm1kcjRwR1MhRzBARUhOfj5lbmRzdHJlYW0KZW5kb2JqCjMxIDAgb2JqCjw8Ci9GaWx0ZXIgWyAvQVNDSUk4NURlY29kZSAvRmxhdGVEZWNvZGUgXSAvTGVuZ3RoIDI3MzIKPj4Kc3RyZWFtCkdhdUhNPj9CaVMmcTkiRmVEITsqJGFoVVE0PjIlRDBWNEAuS1QmKDk4SWRENWVAJUcwQzhLSXRqOEpYVGg3PUwrPTsvPyYpMTQiLlY1aDgwWUorbFtmX0BoWG1qSkE3XDpDbichVExuKCQsai80PUJyXD9gUi8kXzxvPU89NDk2cjw0ZFVEJEtqSjBhJ0RWLm9hUldiXFBedVVdZ010N0RLWFBBTltNTTE5Xj84WFpoZzpVJ3IyQUh0XmozSDVVdSZ0LyIzOi5UIipZYEZTSChtJkJBc01iLm04STVMM0IkdGdDITokSjQwZ2NrPkUjNUJXYFdCJEVjaDtRJm4rNF8kKUZBcE9eTyltTW9MJlJdM11ONzNZYzpwZyFCV1NcWDVcPVN1UjgtYWsrTyVUa147bzgsQkM3VFxwQ2NYdEkkSFtBNS1KU1RQTG82NjFfclZRaHIycStoYms2cSZHczQjZigoRyIrREN1UFxLMDM3SjhHRGhhSD48WDJSMGtPLiRhVi9XMEIrLFdCRTwsSllQNkRhP2k6Kj4jM3QlJCI9OFRKNWNuL05YK1QzYihAJUsycjBJMjNkIzg3cjAnOG9PPEYudVgzZEU+dERFOEpNO2NPNmcubjZrPDorO2xfW15hOFlMNF5vQ1MsQCVEbkA4M2IlWEdNdT1FVWhMJixUJkldRTg6JUZbUD4uPyhPKilYYzkjbV8ya0d1VVFjZipTT0J1YUJGY0IrMTtDJj5PV1lSVWRNYyojXC1VLko3Jk10cVUqVlhvSV5XXi4uOzlcWUtHSksqREshPzhEbWdfOUNaL1dhUWE1RC02LC9PVXRvNGRPY0xYLmtGRidkTDVIOSRhOlw+RUI5Q2EmJWBhV2ljXEciLDgvL0U/P1ZsMXE2ZFVQVlFCKTc8UCpvWGxQSUNxQWE4PSZhKHAlVzw7QTRoJ2U7bjh1dWA9XSlDK09OPS4kOWpnVTsraVVCLlNoYGpFNihJNHEuOTBLVGBAOVNLOWxKPiZjVGVuRDkjVyNKPWYxWy9jIWkqUDRPPFttO08hJiliUjdTOUIhMWU2WWw5Ii5cbF5idWktP05uP2ooXiQsaWJwNkRGTUY7RCVHVGQ7QClbWmJMdEorOTdoQik8dVtqO0pzJyciLTQrPlRnSGJaKUwlQC1yYWdVKzJMYT1UI2hwQ15zImlNVHIiXjIlU0BpPDU+TjJBXWUxbVchX148VDchKiZCOyZyWi4uZGlWdSxMRDspLixnNGpYc1E2LFJTbVEqNVFWVWIicE0vPTxsb0JKVXRgc2RAKDVrQ1lgSDk5WzZIMk00IUI7OjtSLmQ1LkNwMDUub0BvIlMhYmtxKjxjWjE8MERJKjIyQTZsZ15DcUZQck9QTzlPSWY3SFInXy1nZWY4YkwxKUwoUkQ5LV1HOS5uSSYrI1JQW25kJmw/dWRlXVFhP2lPLVZkVWYwKVBVQ0BOWlM0ND0oZzopb1dIR01jcjZibk4/bUZhTTEoZnVsQ1M8USZmZUkkYFA0NiY/UispbDBbN21oPiQjWFUpTyRCcElUaV9kLnFsPTcxX3VQXWFaOkxjXkREQCVZMVpoVFJBWWRAJilRYjBiST5NMVk9Njs1O2x0KidbUz9ZMCpyY1dmNkhGbVZDTVxzKDFnSEFYJGcrUT5xZEwzJyc3LUhSZjFiNksibkhJX2E1ayQpYihoQUNTLUg8YTJQSUkrUUk7XmVwQTtwUFtBKWg8VjdtckRAYCxMKW8hbjwuO0FXamslYmxuPD9BJThFUVFbXiw3XFdFZ0ZZVUJzVypiLWIwaSo8Jzw6RGFkKkpocDRpQyFPc0BJRD9UK2ZWYzY8WWlkTjVnUk1eMDhtMEIjZ18vKjxOTyxfak9dTT1pOzRJXTI0bEJJQilZKllyNDZ0bmMjMl4oMUdMKkxAQD82cHFpLFxoT0JfcHMrMk4wZSxGSy0mQSFnPkZeNztSUCs8XjhCMSJaQWMvSEE/KT5AZVJrVU9kbD1aZUctJlUhcClURlJVJzpqZSQwR0prUDpROCVyYF03cVpQNUQ0RjtUL0g+Z2FBamouOXQpYjRWTktjSyJBQFpANDFJZWFTTVVyNzs+RDRdW1lOKFNwXmspbjNUX1skIU5dRGkqZUItSmdgXGo8Kj0zUFV0I3BUQXUmNjBdMFBiQlV1PydUL29yKDEsViFXVktrV1lsVUdBJ0RIVyFvIz9tZlYnO2gzVT9VY3FAVm04Xi1sWGxdMUpLbmYrJCMoOnApdE8oKzVSYjshOyFUYCpgOTUlPCU2M2lsaTphW2wjX14kZylNJTZycyRyYSc7UUpcWHMqPiJjVmc/U1NTYmkwanBDcSllXmQhISk/dCtUOmolbTA2LThkMWwvaypAJlJURGJBJEJsLjtBR09pNjtjVSM+LWVWKEJKL2oyXyoiZEgvc2dDclVeZystOjdtLm9PK1tjIiU8Ryw0OC8mLUQmXnEzWTg8VD0ua3VPODMnSDU8ZllkODFATEtRckZMLnEqbCZnO0RFL0UyOmVFbDc/ZEMlIyk5PT9JNUxQL2clZixhb0sqYSo1KWUhSWorMTIubCdUR0xcNyReJGI9TCdQMUNqVWxOVVJFSWY7XU10T2w/KEEzM1k6NktgSCo6alRUMkIuUSpnInI6ZGQwLzpgJUFpK11uI1VXZE1JKDFzR2laRzlqMD5KO1dyJz5xPyFQVyxoRUw7YyprJGRLZDRZLUcpYTsnbWNvTiknK0lrO1tTUzsmY0MzN2lUJjsoaFcpdUlybmhYMmAyVVxhZU1jJlouOV5BaUEnWWpJUyJMW0ZLTVUuTjxiZlxqOU1BL0huXEBuNjojP3M4WlYpVDxtZy5eYFlmNEZHTV0qKDlrWTBbQGI9ZT9mWDEjJk1rOGpNcigpXjkncUBySWEiXl8jQHRzZjgmYmVaX2VtVmtqRXFnJ1ZHbC8zX2JgPEZgIjE2Tj0zWUpHWSRfI0BfY1lXJSVzdV5Zc19gSVksVk5EM29UanE1JGYoWy9NXUZoVGY6IUBVLms3OSZmUz5LPTppayJARlh0TCpJX0MjVUpZX1xgMGpuakVnU20mTyclN2AwZ2hrQCFBMSIhX0hzYiVDL19uN0ZcPTMscmpGWD9gI2pMIjNicGRnSEprRiVWSDhcXXFIUFgnNiE9ciFWWzppMExHNTo6cEBMQWdcQygyJS5nbSRiciFEOGVZMFQmRzEnQFRIKjdCbVBBMWVwc05mbihWLy86XCJKWiFLPjRjMWBAUTgiRVYqTl9AXVIhLFB0Wkw3SVBVaGVVTGUqO0gzT1JUa1dwQTpLSyYzLHVYPVFPZVhwPGBEM1NZL0s8Ui0/W0hGMy43T01IbDRBbkUrR2YyNjVzTlhDPU9XYDZJZzxdRFJWX05QJ0xtNV1mTlI4PDMrVVcvQjA6aSojTVgsQGZWRzBnPE4hNUJyX19NIU1jLklKQzU2ZFlJPUpHI3E+QChNYVMmY3NIQHBna2tba2wkY2xCP2JvWHQmVCwlcDJOMT1CNkVEaVpXTTY7PSxjWW9cRmZjOm9jTWNWUzVZTVRHTFAsJGJMR1ctcjRcTDctczNjTUklTF9LT1hbUmlcMVpaYlhyT29TR25YblZbX3BTSmFLSCZydH4+ZW5kc3RyZWFtCmVuZG9iagozMiAwIG9iago8PAovRmlsdGVyIFsgL0FTQ0lJODVEZWNvZGUgL0ZsYXRlRGVjb2RlIF0gL0xlbmd0aCAyODUyCj4+CnN0cmVhbQpHYiEjXGJBdUBZKCNBMSttT0NZJE9ZP2VLIkkxIjA9JmBcT04oIytaNnMyP3QtSjlVRE5UZ1dxRjFzaiQyQkR1QT45Y3FWOEBfQCI1a0tKckhnWVZEMXJfYztySldQLEc6UnVkbT84WD1DLiYhTVMncFJiPyoyRCQ0bkdEYCVxayhkN0ojY15UOTsuKjdjWCEuNTJNZlQrWylJWidgLVpHUio1VyNOcnEkUDpGIiIxUzUtYT9sb2R1KmlOLiMzaT5mTSMyX01hNydTS0NFUio9XiErTXFiLlM1NFBnPjxedChKS0NCV0BrU2JILD9lWThcMWxYamQ2aFckLmQ5XmtXbWpOIj5Ja01sXCg4REFvR0dDKVNMZXRHZEFidERrYl83N0hwYXJBQl9AUjFtdVBCXjQ8UC5mOi4oWWsoYUlTTnJTLVlyYkJTQSI5ciFQKG9yJGJfOnRIZFFkYyxgR3JaO1kkcVhlYVdvQDlubEFFbzBRMEZFMDdsNW9vLj1wOlQ5cVlvOG9ANF9oXTtAOkZbTik1ZEI3LmBFUFhPOSxmb2ozXy1MMV06cW8vZVw2J08rL0NoYExDMWkxckZKMjlxdGJuK2wtMzo3TyV0PzdgRz9fL1tVTVxFXFNfNlpMRD4sUEZJZE0+Qm8oXHRQJGRaRV9KbG1XRHJbPGc2UytYQFBjL203Q1BpTzNGNmcsQzxFYmEjIis0KFJdJ15ILzA3bk49IiRkZU0yQ0I5UzpramRSTC42SVFrYmA4SmskVVp0YylSIkNFK0pYSkJLL21jWyxQLlRgdUpwKixSZi0sKlNVO2wmdWouTSFTK00wTVAhT0ttTGZCclFjLnEsdFgsPShORDBhNl9MUkFuKyZtNm5TZys6XD03P0NwYj5DXkZDITkkbG1rdWtiQCZsJTIjKWI4N1VULGxINyZuJVM+XmVUSVBsImo8LTZVO0QpUC9LSC5VLGdQXSNXVScsOXBxQyM1MnBiW3JHXls9O0BZUSIrXTNdaUFSYT9sQVpYLSlXZGNkaWBbLFpoZVlyRHExZ1VUUlUoSWooOE5VKCJkOj8xJGVsU0hPXF1OTyYpWk8rVE5aV2AjMmRGWD9xYCE1aHNscE8/TUVnLGZmR1Y/b0hGNSs4YlZTOi80cGpDOD5UJ0RyKCgiIlFTcl09bUZ0ZzNIZGZjKEFyW0RtKUdcMjtsMz4qdDpEOlk0NSxfQjlDWGA1XDNUYVUsUjJfZypLWS43KU8nRzArZlpzXmouRGAiZlNyc1toIXMxL1pzIVVAXSs2NElxbTVVLmFbTGFfMVQ9YVFFZDRaVE1eSyZWVyEkJWErPTljInJKbExDQUU9YFwtQjFhR14qJUZPT29rKT5pLEkkTGomczZSb2U5SClOSE5hTE1oJjklUV8/clVEbCMpXUBwYTdwdCxfaSQ3VlImWlZCTmUjOSxUOWxSRlBuMkY8aGFMXmc2QjpiXSRvI0xnRHJjOz5vJUtvZjJ0YjhUNkE9a0RbVktjMC0mYDFRT1NuXTRBI11tKG9GSS1gRmZPaVtnVCtCSSFDP1kqOl4+WzpVaUZBPmRWPSNKPVQhVG40aEI5ZCpiR0hSNiRQZW1TYV9iI3Q0Myw7MkpTMTY/Jy87SWA/YDlTTllTalE9SC5fMkMhZksiM3M3KlhbYShyYlEkKTVDPmtBczFpXmdjSEgtITR1L3VfMTQ2V3BwcnJkYFdFL1EkZDpLYUlvbjtqQ3AuNkFaITY/Zjllb15UZmE+RGYuVD4obEUmUTokb11RPzIxP1hLTlYyYTIwN2I2WVwkPDduJTthMiYjPSYsOGRqVk9gQDBPUlFfYTE9VklCdF0qY19VKmUjNmMndUJAMnM8XVtubjVfJXNmJShfX3EzITE3QSIlNUN1UjhRVS1bRkg0M19OOi4kQHBcbG8yTmkuTkooMEBpTSVyVUI+aGZNOyM5X2BLQDshYl5dQ2trX1QwPVBicnM1ciltW1hxPD9TL1UmMnQrb3JWNGszdDVAQDJTLnRSNGBDNzs0TFtxS01vVmYvUy8wciloRmNuWkwialBMajhTS2QjWz1jYD1yVCw/LFpFb1xZJGQuOWtxSGpEQHBwPVYwSjBVUW9WLFRNNSZwdSY5USlvTThrXG80TS9IYWYoVlssYC5sSGNhUnQsWDNpdDBqRVlOL2pcL2ZFdC9yYmM1Iy5CWEpANldzcloyQToxJHFSPS4tcENWNmZmI0pKOlRVcnEmOzV0MiN1XWtBU1dAcl0haWlgQ0Q5OWgkQmhfTytBJz8+LHFfUGVhazI3dG9YXTQqOWM5WWAuJC0oWTZLdSliX0c1VVJPRlhqaWxdRTheMVQ4bUY6IlBYcmVQK1k0cmZVdC87X25MWkBKUkQ+TikjZ3IyJ2FpXW9NRyRjNzhvKExLazFoLVdrajEyUSYibUgiWXRmb0stczMwSD0xQGw3VjRiKkNIPz8/O1Mmc2IiNWZNIkJIa09ZVWRFQiMmVFNWaGxJJGwwKkY4cSJtYCk4QkdGJnQ3aENtaW9ASVhEQXQiTElWPyxSUWQ0LD1MTE9rOlxVcGNyM0ooLmtEYiJuNjNrdEQyN18mRSxpWDtIaXIpUShxYGc6V1xLaDRlNlBFSTExJUk3bl9sbDpvTilNWGssWk8iPmRjS0plY0tjXzdiRmZDIk4zUEAiYmx0UjpMRVRcYDA9XkpTcDklcE9VWnBNJUxbLF4hT0Iuc19wYkkiOERpYT0qWDAxX0gxJ1VbMFloZWgoMzdTMHIydS86bWxTVWpcRF1mVl1kaS0xZkRsYkgrIThJVzkjNEBjWUVwbmBgb1Y1JHFZPiJkPXRRJ1hAJC5JWFVeanJWPDZZL0tpWVQmYWFIYWVAQ2xSY2ZLOjRmUi4xYStrIjhSJiRbTikldDg+cGRSY1xHMS9UWlhRVDZtPmFdUFYtRTlPTFNjKilsN1NVQ2pKXiQ0RTNqImZfciomYlg3b0NvJkJucUhqZjJXP1AyMUc3KjtKZylOZychPzE+VUJMckBTYDZPJ1Y0ZjxUZGlPQGxiLjhJNmM2P3MuRDVBY1Apb1QkU2VVWCN1T09YIklIaD5ROV1AI2NwPCIpSiphaFJuZSdXcUVeP2BEXW1XZ1RPXGZSJyVxRlpgPjlHc1JXNjQsQTohUmtALW9AUEVUTkAyNzMrLS1oKVtpclcnLW1xMUJTNkInMUIkM1dGLmM2UkFHS1hwZ0deckthKSZTYDtnI2tkSTYqQ0dsNT46LWZ1VyI7UTJJcU1kSGw1S19jSzJXN0hwKHJpLCREVjZjVyNER24uYGtuZ3NxRE9XcVQwNCdgREQ4WTMyYihRVCcsI0JrKiEkRGhGZlFYa05ObT5ic2BWI3Q5SihYZGE1ZU9TOD1za1xOYCNhbG1ucE9sVz5PQSJOZEMqJWo8b2dDL1NmOEdWKG49UnEoYVkkPVY5N0Vmbk81ayw0SlE6ZlFMP3BVWD8nSE9TUzRLXiYwODxWYnNMI14hOUdWdVNeYDUvQiM/YFdpWHQ4UmMoa21TSTVeK3BKdFhsR11layVcQG5uaDpAPTNbZDE9RCI2MzBxKz1WNC5nXDZsblcoKGBgTUVcM2RUa11YXj4rXWJMNVdWSD1MUFJaSmExVkkmTyFdalBGXl1NYHEpZDkjXThmN0ZFdG1aLDQ+O0g0MTRtV2xoVEsuajEkWlFTI0UvRlldbUpKaDUsRWo5Z0RGaXJyOkBqU0dWXj5rYUQoNCU7JGJoWCJKKmUqdHMwcENXKnMiIWlOLktNT1pYNCpFcyZZOGsqUCw1YEB+PmVuZHN0cmVhbQplbmRvYmoKMzMgMCBvYmoKPDwKL0ZpbHRlciBbIC9BU0NJSTg1RGVjb2RlIC9GbGF0ZURlY29kZSBdIC9MZW5ndGggMTk2Ngo+PgpzdHJlYW0KR2F0bTs+dVRLSSdSZi5HZ3BdT2AkW2wzIWhIVSs9U0gmc1NjI2NRIigyNUA9LmRhNj5mcms1PEhaZ1xDUjNqYiUxPGVaQmYldUkvY1QtND5hTWozUUojPVU/TnNlIl5uQXQzOFlwOnVFNjxfJSJvPlQrTDdvJkR0ZDo+akVTOmxHMFAqOlIoKWJvU2pvI1FaJEhSKCcyKjdrXUo0c2RCI3BoZ3BJOFBwPGNJUGM6S2QvOWg4JyZzdDs5WTIhNiZHbz1cIk1sQE9wYj1yV0lpPFc0a043PEgoJkY8OUYuTHJYQFRvIjxIcl9jImE3SDA/VTdqKGA3QUZUQEYqYyUlbDlWWzlVTysoK1lCW0JPUjQ7MU1VV14nZHBeJk45ZSlJYzBuJHU7WXB1TEFQMF8ubVQvbUBZalQzaDpnbFEkWlNgZG5lTEA8PlckYFFeIVpZJVIzUVNNMDJFSVFraDFeYV1VMWY4SlglSjV1WDVdNCdlazo/NlxXQj9RYERbNCcrP3I8V0xpOFBKYWFZSS4yaW5HOGchSzBVKHQwYDwhcHFTNytdVkA4SzQiQWVrTUVMMic5LGBYZWVGNC9MYEJcTD5nOUkjY0NpJXQjPEdbYC1tIVRuJjRIXkkpM2NrUUZ0Pi8lRlIwY2dKNj1TQUFpM0xEcW4oXWI5LDVaSWtDTjImaGQkT2dqbEdNNWwmXzhNWDJdIjVHPk9gIjo9OS5oL0hVM0gzKWo0WDc/JlJEPldYaDMxU2ArMj9ISSwrZHMmUVE2bUoyT101Mj5xXUBGMXFBNXBHWzJEbStuPCM1cmBjLl4hYyY2T3FqNDxXX2IhVzZxWE8vRypLIzdDa3NzZSZRZ1dhPDNmWlNSJiJJVlAza2VZNz9hbDZaSj9XInBGI1smNF1EZmxxX1cpVm5KXWE4O1VkIz1MbyQqYEU7Rk8jN1JDX1FlOTQ4L1pgOlJlQ1oqakQvaTVnZjw9WGpuajxkSUYtTCFsKk0uUyVpP19gJ01rPWM1InMhN1NGPi0nO1Vwcjh0PWw9TT5PWVA+cWwsUSI6dGwsbCs8L1cwUXQjYUpDXkMyU243XTF1RU8/XT5GXTA1TjlEb0pUI0RBNC5BNCtVNSpEYEBEaThfRi0xJ09NbDVCV2lDcy5bUUhyZEZqOnBuTExxanRDdG8qKVVLaFpfXTRKcF00XTxoMUxpaGgsMigkZ0NobF4/NVIpISssVlYwYWAhZV1tVDdNMWYlI0piMiQkPyUtNCM4TGRwSlUibVtUL2MzIW9BcGM0R0dxXWBkS3JuKEM7YCZvWXVZY2hvJ1RvWkg8ak9OREBFOi5iIyVlXTx1WmttYkpgaFppQ2haYU5MajRgPXRXNW5kKig2bTBcY2NoQSc+WihaazAmV2QvcTc3Z1Rkbl1zKC5sRiY+M1QlOk9tWGUya2tqVjRRZChNciVHNTg3Y0BmakUsNkRqa1kwK1JXLHBII0dzR1hBN10jdGBlUFBIWzxGa3FfaXMiMFg9QD5bMUQ/XSUvWnVXdWNVWDBEWGpFMnNFXmQ5O1pGYDI/NyU/VF5NaSJZXEdaJFJyYCljXGNeVSM2L0g1MEVYVSpxYWVCaFRhbztrXidcSVopdTckKVYjUlNOSVBPVEBRYXEycjBQKFkxKiwiaGYrMjI2Jjs9ZUBTXVZITzkrLzd0NW8sKWlPLFtyNWUiSCNZazxddWVHcDJwN1cqJWxrVW5nPCtLJjg9KEdrL008TidmQjFSLlFgQC9lRSVWTUchLVFwbzVhZXItOjJwJ2VmJyFfY2FGU1NScmpOIWdeOVhOPFcvZVloJjpTKj4uQHBpNVZwQjl1Tmw6OTg6SWUzXSFZMy5ZSDUwXDQ1TyxjYXVbLUw+VTY1YmBFX2NTSmtIZGBuM1E1czVQImAnImxSS11fRWVVaU9SKF5DaCgyc0dkbk8/NF1sSWVQdUpbZVlvNlIuKD9ZbiVgdEZaOydQVj1xSzEyJ2E7b2xsMl9CKzw2bGhLPG5LXCVmYUZTcycuSDVbVihgRkZGZllvUlw0VVk5SXVNNi51K143Ly1JYys0J1dkIUQlPG9MYHMwNCU2XDQpQ0UhdXBDKTReMUExXjZOWlhZTktvbCMqMEdeTiViPipENFlqczhzW1gxa1E0PmRRNjJaM29oMXJeVlNaaGs1OnFpU2U4QlBLM1JCMm9KVCFhXT8lLik6RGBcc2wnZSJHRUE3PDRKM3BtJko/SFtOIzdLOnUvaSxQVGckPkdDKSUhbThmcVpROFB0IUxLKUUkVyNnVEQiPylbcExtVU5oQilnJiVBR3I9XlNPdCE9SjRmXFkjQVMrSFhoVVhtbTdLb2JjcFs9YVddQktRLUhQJEBbLkIuW1RYPkxQZzA9OSRvRWlcPmhcPSw0IWFIO1Anb1UlLTc7XShwb2wiZE9aLFhTOiZVZS1OLTNyQ2RyTE8oKEBxMkFyNkQ4Z25hM0ElMStOQkxSSVhiZmc1TzYmY1xqJjs0JCc9VnIhbic0VEBUdCE3YCgjJCMpPz9CWjxGX1dPN0lPJGRfNHVUcXFSZjwlQDZDb05ZUFxNISdwJW82WipPKSpYTyNZVUcpIVdCXz1DMDtGUyQoZWIlbC9+PmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDM0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDA2MSAwMDAwMCBuIAowMDAwMDAwMTMzIDAwMDAwIG4gCjAwMDAwMDAyNDAgMDAwMDAgbiAKMDAwMDAwMDM1MiAwMDAwMCBuIAowMDAwMDAwNTU3IDAwMDAwIG4gCjAwMDAwMDA3NjIgMDAwMDAgbiAKMDAwMDAwMDg3NyAwMDAwMCBuIAowMDAwMDAwOTU0IDAwMDAwIG4gCjAwMDAwMDExNTkgMDAwMDAgbiAKMDAwMDAwMTM2NCAwMDAwMCBuIAowMDAwMDAxNTcwIDAwMDAwIG4gCjAwMDAwMDE3NzYgMDAwMDAgbiAKMDAwMDAwMTk4MiAwMDAwMCBuIAowMDAwMDAyMTg4IDAwMDAwIG4gCjAwMDAwMDIzOTQgMDAwMDAgbiAKMDAwMDAwMjYwMCAwMDAwMCBuIAowMDAwMDAyNzA2IDAwMDAwIG4gCjAwMDAwMDI5MTIgMDAwMDAgbiAKMDAwMDAwMzExOCAwMDAwMCBuIAowMDAwMDAzMTg4IDAwMDAwIG4gCjAwMDAwMDM0NjkgMDAwMDAgbiAKMDAwMDAwMzYwNyAwMDAwMCBuIAowMDAwMDA0NDUzIDAwMDAwIG4gCjAwMDAwMDczOTQgMDAwMDAgbiAKMDAwMDAxMDczOCAwMDAwMCBuIAowMDAwMDEzOTMyIDAwMDAwIG4gCjAwMDAwMTY5NjQgMDAwMDAgbiAKMDAwMDAyMDA0MyAwMDAwMCBuIAowMDAwMDIzMzc1IDAwMDAwIG4gCjAwMDAwMjY0NzEgMDAwMDAgbiAKMDAwMDAyOTYwMiAwMDAwMCBuIAowMDAwMDMyNDI2IDAwMDAwIG4gCjAwMDAwMzUzNzAgMDAwMDAgbiAKdHJhaWxlcgo8PAovSUQgCls8MTkxZDZmNDI2NDRlNDk5NTViZTk4ZGNhNTFiNTZlNDI+PDE5MWQ2ZjQyNjQ0ZTQ5OTU1YmU5OGRjYTUxYjU2ZTQyPl0KJSBSZXBvcnRMYWIgZ2VuZXJhdGVkIFBERiBkb2N1bWVudCAtLSBkaWdlc3QgKG9wZW5zb3VyY2UpCgovSW5mbyAyMCAwIFIKL1Jvb3QgMTkgMCBSCi9TaXplIDM0Cj4+CnN0YXJ0eHJlZgozNzQyOAolJUVPRgo=';
+
+function openMethodology(){
+  const blob = new Blob([Uint8Array.from(atob(PDF_B64), c=>c.charCodeAt(0))], {type:'application/pdf'});
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
+renderTabs();
+renderTable();
+renderWatchpoints();
+renderFilters();
+renderTimeline();
+</script>
+</body>
+</html>
