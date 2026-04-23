@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-Strait Monitoring Dashboard — Jan–Apr 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f4f0;color:#1a1a18;font-size:14px;line-height:1.6}
+.page{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+.top-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;gap:8px;padding-bottom:1.25rem;border-bottom:0.5px solid rgba(0,0,0,0.12)}
+.top-title{font-size:18px;font-weight:600;color:#1a1a18}
+.top-meta{font-size:12px;color:#5f5e5a;margin-top:4px}
+.conf-note{font-size:11px;color:#888780;margin-top:3px;font-style:italic}
+.top-date{font-size:12px;color:#888780;margin-top:4px}
+.sl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888780;margin-bottom:.75rem}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.month-tabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.mtab{font-size:12px;padding:5px 14px;border-radius:20px;border:0.5px solid rgba(0,0,0,0.2);background:transparent;cursor:pointer;color:#5f5e5a;transition:all .15s}
+.mtab:hover{background:rgba(0,0,0,0.05)}
+.mtab.active{background:#1a1a18;color:#fff;border-color:#1a1a18}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;color:#888780;font-weight:500;text-align:left;padding:7px 10px;border-bottom:0.5px solid rgba(0,0,0,0.1)}
+td{font-size:13px;padding:11px 10px;border-bottom:0.5px solid rgba(0,0,0,0.07);vertical-align:top;color:#1a1a18}
+tr:last-child td{border-bottom:none}
+tr.row:hover td{background:#f9f8f5;cursor:pointer}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:2px 9px;border-radius:4px}
+.s-low{background:#EAF3DE;color:#2d5a0e;border:0.5px solid #97C459}
+.s-mod{background:#FEF3E2;color:#7a4a06;border:0.5px solid #EF9F27}
+.s-high{background:#FDECEC;color:#8b1f1f;border:0.5px solid #F09595}
+.tc{font-size:13px;font-weight:500;white-space:nowrap}
+.tn{color:#C0392B}.tp{color:#2AB5A5}.tf{color:#888780}
+.bi{display:flex;gap:9px;font-size:13px;margin-bottom:.7rem;line-height:1.55;color:#2c2c2a}
+.bi:last-child{margin-bottom:0}
+.bd{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0;background:#1a1a18}
+.mo-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.mo-overlay.open{display:flex}
+.mo-box{background:#fff;border-radius:14px;border:0.5px solid rgba(0,0,0,0.1);padding:1.75rem;width:min(620px,92vw);max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
+.mo-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.1rem}
+.mo-title{font-size:15px;font-weight:600;color:#1a1a18}
+.mo-close{background:none;border:none;font-size:22px;cursor:pointer;color:#888780;line-height:1;padding:0 2px}
+.mo-close:hover{color:#1a1a18}
+.mo-meta{font-size:12px;color:#5f5e5a;margin-top:4px}
+.srow{padding:11px 0;border-bottom:0.5px solid rgba(0,0,0,0.08)}
+.srow:last-child{border-bottom:none}
+.srow-name{font-size:13px;font-weight:500;color:#1a1a18}
+.srow-obs{font-size:12px;color:#5f5e5a;margin-top:3px;line-height:1.55}
+.srow-src{font-size:11px;color:#aaa;margin-top:3px;font-style:italic}
+.sig-b{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:#E1F5EE;color:#0a5c3a;margin-top:4px;font-weight:500}
+.sig-w{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:#FEF3E2;color:#7a4a06;margin-top:4px;font-weight:500}
+.sig-e{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:#FDECEC;color:#8b1f1f;margin-top:4px;font-weight:500}
+.conf-pill{display:inline-block;font-size:10px;padding:1px 7px;border-radius:3px;background:#f1efe9;color:#5f5e5a;margin-left:6px;border:0.5px solid rgba(0,0,0,0.1)}
+.fn{background:#fef9f0;border-left:3px solid #EF9F27;padding:9px 12px;border-radius:0 8px 8px 0;font-size:12px;color:#5f5e5a;margin-bottom:1.1rem;line-height:1.5}
+.src-block{background:#f5f4f0;border-radius:8px;padding:10px 13px;margin-top:13px;font-size:11px;color:#888780;line-height:1.6}
+.mo-summary{font-size:13px;color:#5f5e5a;margin-bottom:1rem;line-height:1.6;padding:10px 13px;background:#f9f8f5;border-radius:8px}
+.ftab{font-size:11px;padding:4px 12px;border-radius:20px;border:0.5px solid rgba(0,0,0,0.18);background:transparent;cursor:pointer;color:#5f5e5a;transition:all .15s;white-space:nowrap}
+.ftab:hover{background:rgba(0,0,0,0.05)}
+.ftab.active{background:#1a1a18;color:#fff;border-color:#1a1a18}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="top-bar">
+  <div>
+    <div class="top-title">Cross-Strait Monitoring Dashboard</div>
+    <div class="top-meta">Non-kinetic coercive activities — deviation from baseline &nbsp;·&nbsp; Jan–Apr 2026</div>
+  </div>
+  <div class="top-date">Updated: Apr 23, 2026</div>
+</div>
+
+<div class="card">
+  <div class="sl">Monthly trend</div>
+  <div id="chart-filters" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem"></div>
+  <div style="position:relative;height:210px;width:100%">
+    <canvas id="tlChart" role="img" aria-label="Monthly trend Jan–Apr 2026.">Trend scores across Jan–Apr 2026.</canvas>
+  </div>
+</div>
+
+<div class="month-tabs" id="month-tabs"></div>
+
+<div class="card">
+  <div class="sl">Monthly indicator tracker — <span id="active-label"></span></div>
+  <table>
+    <thead><tr>
+      <th style="width:27%">Indicator</th>
+      <th style="width:10%">Status</th>
+      <th style="width:20%">Trend</th>
+      <th>Summary</th>
+    </tr></thead>
+    <tbody id="ind-tbody"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="sl">Watchpoints — May 2026</div>
+  <div id="watchpoints"></div>
+</div>
+
+</div>
+
+<div class="mo-overlay" id="modal-overlay">
+  <div class="mo-box">
+    <div class="mo-hdr">
+      <div><div class="mo-title" id="modal-title"></div><div class="mo-meta" id="modal-meta"></div></div>
+      <button class="mo-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const MONTHS=['Jan 2026','Feb 2026','Mar 2026','Apr 2026'];
+
+const OVERALL=[
+  {t:-1,label:'−1 Disruptive'},
+  {t:0, label:'No change'},
+  {t:-1,label:'−1 Disruptive'},
+  {t:0, label:'No change'},
+];
+
+const WATCHPOINTS=[
+  'Trump-Xi summit (mid-May): post-summit arms announcement is the most likely PRC retaliation exercise trigger — watch for PLA exercise announcement within 2 weeks of summit conclusion. Any formalised arms sale delay or reduction in communiqué language would also move allied support status.',
+  'Shanghai airspace closure expires May 6: if PLA exercise is announced or conducted before or around this date, confirms the closure was pre-exercise staging — and would constitute the first confirmed multi-domain convergence signal of 2026 if accompanied by cognitive or economic escalation.',
+  'Defense budget: Legislative Yuan session continuing — US$2.4B defense procurement at immediate cancellation risk. Watch for cross-party agreement or further deadlock hardening ahead of November election positioning.',
+  'November 2026 election influence operations: KMT-PRC channel now formalised and AI data scraping on Taiwanese legislators confirmed — watch Doublethink Lab and IORG for first coordinated campaign launch targeting November local elections.',
+];
+
+const INDS=[
+  {id:'pol',name:'Political fragmentation',short:'Political fragmentation'},
+  {id:'eco',name:'Economic coercion',short:'Economic coercion'},
+  {id:'dip',name:'Diplomatic isolation',short:'Diplomatic isolation'},
+  {id:'mil',name:'Gray-zone military',short:'Gray-zone military'},
+  {id:'cog',name:'Cognitive warfare',short:'Cognitive warfare'},
+  {id:'all',name:'International support',short:'International support'},
+  {id:'str',name:'Strategic convergence',short:'Strategic convergence'},
+];
+
+const DATA={
+'Jan 2026':{
+  pol:{status:'Low',trend:-1,conf:'High',
+    summary:'Defense budget blocked 8+ times; KMT-TPP passed largest-ever budget cuts — first year-end deadline failure in LY history. Impeachment proceedings filed against Lai. Government grip on legislative agenda materially weakened.',
+    subs:[
+      {name:'Legislative gridlock',obs:'KMT-TPP blocked NT$1.25T special defense budget 8+ times. Legislature passed largest-ever budget cuts (~1/3 of government spending) — first year-end deadline failure in LY history.',sig:'e',src:'NPR Jan 22; The Diplomat Feb 17'},
+      {name:'Impeachment proceedings',obs:'KMT filed impeachment proceedings against President Lai — signals extreme executive-legislative confrontation even if widely assessed as unlikely to succeed.',sig:'e',src:'Foreign Policy Apr 10'},
+      {name:'KMT-PRC signalling',obs:'PRC state media praised "rational voices" in Taiwan for blocking "provocative" defense spending — openly framing KMT obstruction as aligned with Beijing\'s interests.',sig:'w',src:'Gemini political report'},
+      {name:'Protest / public signal',obs:'No major protests in January. Civic recall petitions gaining momentum but not yet at scale.',sig:'b',src:'Gemini political report'},
+    ]},
+  eco:{status:'Low',trend:0,conf:'High',
+    summary:'No new PRC economic coercion. ECFA petrochemical tariff suspension (since late 2023) is the elevated baseline. US-Taiwan tariff deal at 15% signed — modest positive. No trade bans, regulatory lawfare, or corporate targeting.',
+    subs:[
+      {name:'Trade restrictions',obs:'ECFA tariff suspension on 12 petrochemical products in place since late 2023 — elevated baseline, not a January event. No new restrictions.',sig:'b',src:'Gemini economic report'},
+      {name:'ECFA status',obs:'Tariff suspensions remain. Beijing warned of potential extension to textiles/machinery — rhetoric only, no action.',sig:'b',src:'Gemini economic report'},
+      {name:'US-Taiwan trade deal',obs:'US-Taiwan tariff deal signed Jan 2026, lowering tariffs from 20% to 15%. Modest reduction in trade dependency risk.',sig:'b',src:'The Diplomat Feb 17'},
+      {name:'Material impact',obs:'No new coercive measures. No trade disruption, corporate targeting, or regulatory lawfare enacted.',sig:'b',src:'Framework application'},
+    ]},
+  dip:{status:'Low',trend:0,conf:'High',
+    summary:'Taiwan holds 12 formal allies. WHO Executive Board exclusion is established baseline pattern. No new org exclusion, no severance, no downgrade confirmed in January.',
+    subs:[
+      {name:'Ally count',obs:'12 formal allies. No defection or severance in January.',sig:'b',src:'Open sources'},
+      {name:'WHO exclusion',obs:'Taiwan excluded from WHO Executive Board — consistent long-standing baseline exclusion pattern. Not a new development.',sig:'b',src:'Gemini diplomatic report'},
+      {name:'United Front operations',obs:'PRC-linked United Front operations targeting younger Pacific politicians to sway One China interpretations. Sub-official level, no confirmed impact on formal ties.',sig:'w',src:'Gemini diplomatic report'},
+      {name:'Org pressure',obs:'No new international organisation exclusion or formal tie downgrade in January.',sig:'b',src:'Open sources'},
+    ]},
+  mil:{status:'Moderate',trend:-1,conf:'High',
+    summary:'Maritime militia massing: ~1,400 vessels in coordinated 200-mile formation (Jan 11) causing cargo ships to alter course, following 2,000-vessel L-shaped formation (Dec 25). Timed to Justice Mission 2025. ADIZ sorties at/below post-Lai baseline.',
+    subs:[
+      {name:'Maritime militia formations',obs:'~1,400 Chinese fishing vessels in coordinated 200-mile rectangular formation Jan 11 near Taiwan shipping routes — cargo ships altered course. Preceded by 2,000-vessel L-shaped formation Dec 25 (290 miles). IngeniSPACE/Starboard confirmed. CSIS: consistent with government coordination, not normal fishing.',sig:'e',src:'Jerusalem Post Jan 21; Taipei Times Jan 29'},
+      {name:'ADIZ sorties vs baseline',obs:'~285 sorties — at/below post-May 2024 structural baseline of ~300/month. Seasonal winter decline. 12 balloon detections, 2 overflying Taiwan land territory.',sig:'b',src:'Gemini military report; ISW-AEI Feb 6'},
+      {name:'Justice Mission 2025 context',obs:'Dec 29–30 blockade exercise in reporting window. Militia formations timed to exercise — coordinated civilian maritime massing as blockade rehearsal component.',sig:'w',src:'ISW-AEI Jan 2'},
+      {name:'CCG Kinmen',obs:'4 CCG incursions — normalised ~4/month baseline. No escalation above established pattern.',sig:'b',src:'ISW-AEI Feb 6'},
+    ]},
+  cog:{status:'Moderate',trend:-1,conf:'High',
+    summary:'Confirmed above-baseline campaign post-Justice Mission 2025: 45,000 accounts active, cross-platform coordination within 48-hour windows confirmed, AI video delivery confirmed. Departure from structural baseline in timing and coordination.',
+    subs:[
+      {name:'CIB cluster activity',obs:'NSB confirmed 45,000 fake accounts active, spreading ~2.3M disinformation pieces. Timed to Justice Mission 2025 exercise context — above structural baseline.',sig:'e',src:'Taiwan NSB Jan 12; Gemini cognitive report'},
+      {name:'Cross-platform coordination',obs:'NSB observed simultaneous seeding across fake news sites and social media within 48-hour windows — confirmed coordination signature above structural baseline.',sig:'e',src:'Taiwan NSB; Gemini cognitive report'},
+      {name:'AI operations',obs:'Automated programs and AI tools used by PRC MPS to generate and deliver psychological attacks via video. Confirmed AI-generated content delivery at scale.',sig:'w',src:'Taiwan NSB; Cybernews Jan 12'},
+      {name:'Reported impact',obs:'NSB documents infrastructure and tactics. No confirmed polling evidence of material opinion shift. Volume metric, not yet confirmed impact metric.',sig:'w',src:'Framework application'},
+    ]},
+  all:{status:'Low',trend:0,conf:'High',
+    summary:'Allied posture solid. USS John Finn Taiwan Strait transit Jan 16–17. High-level EPPD dialogue with Pax Silica Declaration signed. $11B arms pipeline active. No allied activity spike approaching PRC retaliation threshold.',
+    subs:[
+      {name:'Military presence',obs:'USS John Finn + USNS Mary Sears Taiwan Strait transit Jan 16–17. First transit of 2026. Routine freedom of navigation — within baseline.',sig:'b',src:'Gemini allied report'},
+      {name:'Senior engagement',obs:'US Under Secretary Helberg led 6th US-Taiwan EPPD Jan 27. Joint Pax Silica Declaration on AI supply chain security signed.',sig:'b',src:'Gemini allied report'},
+      {name:'Arms sales',obs:'$11B FMS package (Dec 2025) in active pipeline. No new notifications. No announcement approaching PRC retaliation threshold.',sig:'b',src:'Gemini allied report'},
+      {name:'Provocation threshold',obs:'No allied activity spike. Routine transits and dialogue are baseline, not escalation triggers.',sig:'b',src:'Framework application'},
+    ]},
+  str:{status:'Low',trend:0,conf:'High',
+    summary:'No multi-domain escalation event. Militia massing significant but isolated — no simultaneous cognitive spike or economic coercion. No confirmed 7–14 day clustering across three or more domains.',
+    subs:[
+      {name:'Multi-domain spikes',obs:'Maritime militia massing significant but isolated. Cognitive above baseline but no simultaneous economic or diplomatic escalation. No confirmed 3-domain clustering within 7–14 day window.',sig:'b',src:'Synthesis'},
+      {name:'Election proximity',obs:'November 2026 local elections 10 months out. Early influence operation preparation plausibly beginning given NSB-confirmed historical lead times.',sig:'w',src:'ISW-AEI Jan 2'},
+      {name:'Policy triggers',obs:'No major policy trigger in January prompting coordinated PRC escalatory response across domains.',sig:'b',src:'Open sources'},
+      {name:'Tempo',obs:'No acceleration in gray-zone incident intervals across domains.',sig:'b',src:'Open sources'},
+    ]},
+},
+'Feb 2026':{
+  pol:{status:'Low',trend:0,conf:'High',
+    summary:'Budget impasse slightly thawed — cross-party consensus Feb 24 to move to plenary March 6. Underlying fragmentation unchanged. KMT-TPP leveraging defense delays against trade concessions. Stable signal.',
+    subs:[
+      {name:'Legislative gridlock',obs:'Cross-party consensus Feb 24 to move Cabinet proposal to plenary March 6 — first thaw. KMT-TPP continued leveraging delays against US-Taiwan trade deal concessions. Net: no change from January.',sig:'w',src:'Gemini political report'},
+      {name:'Impeachment proceedings',obs:'Ongoing but going nowhere. No procedural advancement in February.',sig:'w',src:'Gemini political report'},
+      {name:'KMT-PRC signalling',obs:'PRC maintaining "open door" for opposition dialogue. Minor back-channel signals continuing.',sig:'w',src:'Gemini political report'},
+      {name:'Protest activity',obs:'Small demonstrations outside LY — low hundreds. Partisan rather than mass movement.',sig:'b',src:'Gemini political report'},
+    ]},
+  eco:{status:'Low',trend:0,conf:'High',
+    summary:'No new coercive trade measures. MOFCOM Announcements 11/12 created extraterritorial enforcement framework — legal scaffolding emerging but no Taiwanese firms materially targeted. No trade bans or regulatory lawfare enacted.',
+    subs:[
+      {name:'Trade restrictions',obs:'No new import bans or ECFA escalation. Baseline petrochemical suspension unchanged.',sig:'b',src:'Open sources'},
+      {name:'MOFCOM Announcements 11/12',obs:'Feb 24: first extraterritorial enforcement targeting supply chain partners. Control list for dual-use exports. No confirmed Taiwanese firms named. Legal architecture, not yet operational coercion.',sig:'w',src:'Gemini economic report'},
+      {name:'Tourism / corporate targeting',obs:'PRC group travel ban continues as baseline. No new Taiwanese corporate targeting.',sig:'b',src:'Baseline'},
+      {name:'Material impact',obs:'No reported trade disruption or material economic coercion in February.',sig:'b',src:'Framework application'},
+    ]},
+  dip:{status:'Low',trend:0,conf:'High',
+    summary:"Taiwan holds 12 formal allies with no defections or severances in February. PRC pre-defection grooming of Paraguay intensified with a trade delegation visiting Asunción and investment offers to Paraguayan officials — the most active ally-poaching effort among Taiwan's remaining partners. No new international organisation exclusion events.",
+    subs:[
+      {name:'Ally count',obs:'12 formal allies. No defection or severance in February.',sig:'b',src:'Open sources'},
+      {name:'Paraguay pressure',obs:'PRC officials offered agricultural technology transfers and healthcare investments to Paraguayan officials. PRC trade delegation visited Asunción. Active pre-defection grooming — no formal switch yet.',sig:'w',src:'Gemini diplomatic report'},
+      {name:'South Korea naming',obs:'South Korea E-Arrival System labelled Taiwanese nationals as "China (Taiwan)." Taipei protested. Reflects South Korea\'s long-standing One China posture, not a new diplomatic downgrade.',sig:'w',src:'Gemini diplomatic report'},
+      {name:'Org exclusion',obs:'No new international organisation exclusion events in February.',sig:'b',src:'Open sources'},
+    ]},
+  mil:{status:'Low',trend:0,conf:'High',
+    summary:'~315 sorties — marginally above post-Lai baseline of ~300/month but within normal monthly variation. Night-sortie shift and CCG increase are watch signals. No material departure from baseline warranting a trend change.',
+    subs:[
+      {name:'ADIZ sorties vs baseline',obs:'~315 sorties — marginally above post-May 2024 structural baseline of ~300/month. Within normal monthly variation. Not a meaningful departure from baseline.',sig:'b',src:'Gemini military report'},
+      {name:'Median line crossings',obs:'~135 crossings — +45% vs Feb 2025 but consistent with post-Lai normalization trend established across 2024–2025. No new spike above that trend.',sig:'w',src:'Gemini military report'},
+      {name:'Night-time sortie shift',obs:'PLA shifting to night-time sorties — tactical pattern shift testing ROCAF reaction times. Watch signal for future trend but not yet a baseline departure.',sig:'w',src:'Gemini military report'},
+      {name:'CCG Kinmen',obs:'5 CCG incursions — marginally above normalised ~4/month baseline. Watch signal. Scheduled patrol pattern continuing to develop.',sig:'w',src:'Gemini military report'},
+    ]},
+  cog:{status:'Moderate',trend:0,conf:'Moderate',
+    summary:'New campaign type — social issue exploitation. Confirmed deepfakes and AI video. Operation partially disrupted by Taipei police arrests in late February. New tactics but disruption limits demonstrated material impact.',
+    subs:[
+      {name:'New campaign type',obs:'Spamouflage network shifted to social-issue exploitation: coordinated immigrant instability narratives, AI-generated government corruption videos.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Deepfake operations',obs:'Confirmed deepfake video and voice recordings for psychological warfare and data collection.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Operation disruption',obs:'Taipei police arrested suspects linked to AI-assisted operations in late February — operation partially detected and disrupted. Limits demonstrated impact.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Reported impact',obs:'No confirmed polling evidence of material opinion shift. New tactics without confirmed material impact = no trend change.',sig:'w',src:'Framework application'},
+    ]},
+  all:{status:'Low',trend:0,conf:'High',
+    summary:'Trump\'s Feb 4 Xi consultation broke Six Assurances norm and $14B package held. Per framework baseline, US strategic ambiguity is Low/no change. Arms hold reduces near-term PRC retaliation trigger risk. Japan Yonaguni is a regional deterrence signal.',
+    subs:[
+      {name:'Six Assurances / arms hold',obs:'Trump consulted Xi on Taiwan arms Feb 4 — first since 1982. $14B package held. Per framework: US strategic ambiguity is the baseline, and arms hold reduces near-term PRC retaliation trigger. Scored as context, not a trend-moving allied activity spike.',sig:'w',src:'The Hill Feb 22; GTI Apr'},
+      {name:'Japan Yonaguni',obs:'Japan PM Takaichi government commissioned urgent NDS update post-Feb 8 election win. Permanent Type-03 missiles planned on Yonaguni — regional deterrence signal below immediate PRC retaliation threshold.',sig:'b',src:'Gemini allied report'},
+      {name:'Quad statement',obs:'Quad Foreign Ministers issued joint statement of "serious concern" over unilateral Indo-Pacific status quo changes.',sig:'b',src:'Gemini allied report'},
+      {name:'Provocation threshold',obs:'No allied activity spike approaching PRC retaliation threshold. Arms hold actually reduces near-term trigger risk.',sig:'b',src:'Framework application'},
+    ]},
+  str:{status:'Low',trend:0,conf:'High',
+    summary:'No domain showing meaningful deterioration above baseline. Military within variation, cognitive disrupted, diplomatic stable, economic stable. No convergence signal.',
+    subs:[
+      {name:'Multi-domain spikes',obs:'Military within baseline variation. Cognitive active but disrupted. Diplomatic stable. Economic stable. No concurrent domain escalation.',sig:'b',src:'Synthesis'},
+      {name:'Election proximity',obs:'November 2026 elections 9 months out. KMT-TPP electoral cooperation formalising. Early influence operation conditions building.',sig:'w',src:'Gemini political report'},
+      {name:'Policy triggers',obs:'Trump-Xi arms dynamic is Washington-driven, not a PRC gray-zone escalation trigger.',sig:'b',src:'Framework application'},
+      {name:'Tempo',obs:'No meaningful acceleration in gray-zone incident intervals across domains.',sig:'b',src:'Synthesis'},
+    ]},
+},
+'Mar 2026':{
+  pol:{status:'Low',trend:-1,conf:'High',
+    summary:'Budget hearings failed across three competing proposals. Ko Wen-je sentenced — strengthened KMT-TPP "siege mentality," making cross-party defense consensus nearly impossible. Defense LOA deadline missed.',
+    subs:[
+      {name:'Legislative gridlock',obs:'Joint ND/Finance Committee hearing (Mar 23–26) failed to reach consensus across three versions (NT$1.25T, NT$800B–1T, NT$400B). Defense Minister warned failure to sign US LOAs by March 15 would cause contract cancellations — deadline missed.',sig:'e',src:'Gemini political report; Taiwan Business Topics Apr'},
+      {name:'Ko Wen-je sentencing',obs:'TPP founder sentenced for corruption in March. KMT-TPP interpreted as DPP "political persecution" — strengthened opposition bloc solidarity and created siege mentality making cross-party defense cooperation nearly impossible.',sig:'e',src:'Gemini political report'},
+      {name:'KMT-TPP electoral alignment',obs:'KMT and TPP agreed to cooperate in November 2026 local elections following Ko sentencing — opposition bloc consolidating against DPP.',sig:'w',src:'Gemini political report'},
+      {name:'KMT-PRC proximity',obs:'PRC TAO Director Song Tao issued formal invitation March 30 for KMT leadership to visit Beijing — first formal PRC-KMT engagement invitation on record for this cycle.',sig:'w',src:'Gemini political report'},
+    ]},
+  eco:{status:'Low',trend:0,conf:'High',
+    summary:'No new material coercive measures. Two Sessions regulatory language shifted to "crack down" — rhetoric, no new actions. Agricultural customs delays reported but no confirmed material trade impact.',
+    subs:[
+      {name:'Regulatory language',obs:'Two Sessions work report shifted language from "oppose" to "crack down" on Taiwan independence. More aggressive future stance signalled but no new measures enacted.',sig:'w',src:'Gemini economic report'},
+      {name:'Agricultural customs delays',obs:'Enhanced inspections reported for Taiwanese agricultural products from DPP-aligned local governments. Selective enforcement signal — no confirmed material trade disruption.',sig:'w',src:'Gemini economic report'},
+      {name:'Semiconductor talent poaching',obs:'15th Five-Year Plan subsidies targeting Taiwanese semiconductor talent and AI firms. Long-term structural concern, not immediate coercion.',sig:'w',src:'Gemini economic report'},
+      {name:'Material impact',obs:'No new trade bans, sanctions, or regulatory lawfare enacted. No confirmed material disruption.',sig:'b',src:'Framework application'},
+    ]},
+  dip:{status:'Low',trend:-1,conf:'High',
+    summary:'WTO Ministerial exclusion confirmed (Cameroon, Mar 26–29) — first concrete new blocking of Taiwan\'s participation in an international organisation this period. Distinct from long-standing WHO baseline exclusion.',
+    subs:[
+      {name:'WTO Ministerial exclusion',obs:'Taiwan skipped WTO 14th Ministerial Conference in Yaoundé after Cameroon insisted on "Province of China" labelling. First such WTO exclusion this period. Taiwan MOFA condemned Cameroon Mar 20.',sig:'e',src:'ISW-AEI Apr 3; Gemini diplomatic report'},
+      {name:'Belize and Guatemala',obs:'PRC-linked business chambers offering debt restructuring programs to Belize and Guatemala — expanding active ally-poaching beyond Paraguay.',sig:'w',src:'Gemini diplomatic report'},
+      {name:'Ally count',obs:'12 formal allies. No defection or severance in March.',sig:'b',src:'Open sources'},
+      {name:'Corporate naming',obs:'Southeast Asian logistics firms updating "Country of Origin" to "Taiwan, China" following PRC customs regulatory threats.',sig:'w',src:'Gemini diplomatic report'},
+    ]},
+  mil:{status:'Low',trend:-1,conf:'High',
+    summary:'~340 sorties — above post-Lai baseline of ~300/month. 158 median line crossings (+52% vs Mar 2025). CCG Kinmen confirmed shift to scheduled patrols (6 incursions, +300% vs Mar 2025). WZ-7 UAV integration confirmed.',
+    subs:[
+      {name:'ADIZ sorties vs baseline',obs:'~340 sorties — above post-May 2024 structural baseline of ~300/month. +28% vs March 2025. Highest monthly total of Jan–Apr 2026. Peak single-day: 61 sorties March 27.',sig:'w',src:'Gemini military report'},
+      {name:'Median line crossings',obs:'~158 crossings — +52% vs March 2025. Accelerating normalization of median line violations.',sig:'w',src:'Gemini military report'},
+      {name:'CCG Kinmen — scheduled patrols',obs:'6 CCG incursions (Mar 16, 17, 20, 23 + Pratas Mar 18-19). Confirmed shift from occasional entries to scheduled patrols systematically eroding Taiwanese jurisdictional claims. +300% vs March 2025.',sig:'e',src:'Gemini military report; ISW-AEI Apr 3'},
+      {name:'WZ-7 UAV integration',obs:'WZ-7 high-altitude UAV confirmed in March sorties — unmanned systems integration alongside manned aircraft. Tactical evolution in operational posture.',sig:'w',src:'Gemini military report'},
+    ]},
+  cog:{status:'Moderate',trend:0,conf:'Moderate',
+    summary:'Coordinated 10-point plan amplification: state media-to-bot coordination within 24 hours confirmed. High-profile Taiwanese political figures repeating PRC rhetoric — local proxy amplification active. No new spike above prior months.',
+    subs:[
+      {name:'10-point plan amplification',obs:'High coordination between PRC state media and social media bot networks on 10-point plan within 24 hours of release. Confirmed coordinated state-social media operation.',sig:'w',src:'Gemini cognitive report; IORG'},
+      {name:'Local proxy amplification',obs:'High-profile Taiwanese political figures and media repeating PRC rhetoric following Beijing meetings. Local proxy amplification — higher-credibility impact sub-indicator per framework.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Jurisdictional erasure narratives',obs:'Coordinated narratives claiming Kinmen/Matsu waters are PRC territory — directly supporting CCG jurisdictional erosion in maritime domain.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Reported impact',obs:'No confirmed polling evidence of material opinion shift. Proxy amplification has higher credibility potential but no measured breakthrough.',sig:'w',src:'Framework application'},
+    ]},
+  all:{status:'Low',trend:0,conf:'High',
+    summary:'Arms package on hold, summit delayed. Senate delegation (Shaheen-Curtis) visited Taipei March 30 reaffirming support. Japan Yonaguni progressing. No allied activity spike approaching PRC retaliation threshold.',
+    subs:[
+      {name:'Arms package on hold',obs:'$14B package on hold pending summit. Arms hold reduces near-term PRC retaliation trigger. All coordination complete.',sig:'w',src:'Taipei Times Mar 14'},
+      {name:'Senate delegation',obs:'Bipartisan SFRC delegation (Shaheen-Curtis) visited Taipei March 30–31. Routine congressional engagement — within baseline.',sig:'b',src:'Gemini allied report'},
+      {name:'Japan Yonaguni',obs:'Permanent Type-03 missile deployment on Yonaguni proceeding. Regional deterrence signal below immediate PRC retaliation threshold.',sig:'b',src:'Gemini allied report'},
+      {name:'Provocation threshold',obs:'No allied activity spike that would prompt PRC retaliation. Arms hold continues to reduce near-term trigger risk.',sig:'b',src:'Framework application'},
+    ]},
+  str:{status:'Low',trend:-1,conf:'High',
+    summary:'Three domains showing concurrent signals (military above baseline, diplomatic WTO exclusion, cognitive coordinated amplification) but not confirmed simultaneous escalation within a 7–14 day window. KMT-Xi meeting imminent as policy trigger.',
+    subs:[
+      {name:'Multi-domain signals',obs:'Military above baseline. Diplomatic WTO exclusion. Cognitive coordinated amplification. Three domains active in March — but not confirmed simultaneous spike within 7–14 day window. Approaching watch threshold.',sig:'w',src:'Synthesis'},
+      {name:'Election proximity',obs:'November 2026 elections 8 months out. KMT-TPP electoral cooperation agreement reached. KMT-Xi meeting invitation accepted.',sig:'w',src:'Gemini political; synthesis'},
+      {name:'KMT-Xi policy trigger',obs:'PRC TAO formal invitation issued March 30. Meeting materialised April 10. Post-meeting PRC signalling historically follows within 2–4 weeks.',sig:'w',src:'Historical pattern'},
+      {name:'Tempo',obs:'Military tempo above baseline. CCG shifted to scheduled patrols. Multiple domains showing directional movement.',sig:'w',src:'Synthesis'},
+    ]},
+},
+'Apr 2026':{
+  pol:{status:'Low',trend:0,conf:'High',
+    summary:'Impeachment proceedings no longer active — KMT focus shifted to Beijing engagement. Budget still stalled, US$2.4B at immediate cancellation risk. KMT-Xi meeting generates partisan rhetoric but no new institutional action.',
+    subs:[
+      {name:'Impeachment',obs:'Impeachment proceedings no longer active in April. KMT\'s political energy shifted to Beijing engagement and November election positioning.',sig:'b',src:'Gemini political report'},
+      {name:'Defense budget',obs:'Still stalled as of April 23. US$2.4B portion at immediate cancellation risk. Same dynamic as March — no new development.',sig:'w',src:'Gemini political report'},
+      {name:'KMT-Xi meeting',obs:'Cheng Li-wun met Xi April 10. Suggested slowing Taiwan\'s military build-up. DPP accused KMT of echoing CCP themes. Partisan rhetoric — no new vote, protest, or institutional action.',sig:'w',src:'Gemini political report; Taiwan News Apr'},
+      {name:'Protest activity',obs:'Heightened online rhetoric but no large-scale street protests. No mass movement.',sig:'b',src:'Gemini political report'},
+    ]},
+  eco:{status:'Low',trend:0,conf:'High',
+    summary:'PRC Decrees 834/835 created "Malicious Entity List" — first concrete regulatory lawfare tool targeting supply chain compliance. No Taiwanese firms confirmed on list yet but architecture is operational. Bifurcated inducement/coercion strategy now explicit.',
+    subs:[
+      {name:'Decrees 834 and 835',obs:'Apr 7 and 13: PRC created "Malicious Entity List" for firms interrupting "normal transactions" or complying with foreign sanctions. First explicit legal scaffolding for supply chain regulatory lawfare. No Taiwanese firms confirmed on list yet.',sig:'w',src:'Gemini economic report'},
+      {name:'Inducement package',obs:'10-point plan: resumed Shanghai/Fujian travel, flight normalisation, Fujian-Kinmen infrastructure, preferential agricultural access. Taiwan MAC: "political deal" bypassing government authority.',sig:'w',src:'Gemini economic report; Focus Taiwan Apr 16'},
+      {name:'Bifurcated strategy',obs:'PRC rewarding KMT/opposition-aligned sectors while deploying new legal coercion tools against DPP-aligned or internationally compliant firms. Designed to deepen domestic fragmentation via economic means.',sig:'w',src:'Gemini economic report'},
+      {name:'Material impact',obs:'No confirmed material trade disruption. Decrees are legal architecture — coercive potential not yet realised. −1 reflects structural escalation in coercive toolkit.',sig:'w',src:'Framework application'},
+    ]},
+  dip:{status:'Low',trend:-1,conf:'High',
+    summary:'President Lai\'s diplomatic transit aircraft denied overflight rights by Seychelles, Mauritius, and Madagascar — direct operational impact on presidential travel. New tactic: airspace denial via PRC pressure on small states.',
+    subs:[
+      {name:'Presidential overflight denial',obs:'Seychelles, Mauritius, and Madagascar revoked overflight permissions for President Lai\'s aircraft citing One China principles. First time a Taiwanese president\'s diplomatic travel directly disrupted operationally. PRC pressure achieving concrete outcome via third-party states.',sig:'e',src:'Gemini diplomatic report'},
+      {name:'PRC-KMT diplomatic wedge',obs:'Xi-Cheng meeting creates PRC channel to Taiwanese opposition bypassing Lai government. Soft diplomatic pressure — not a formal downgrade of ties.',sig:'w',src:'ISW-AEI Apr 17'},
+      {name:'Ally count',obs:'12 formal allies. No defection or severance in April.',sig:'b',src:'Open sources'},
+      {name:'Active pressure campaign',obs:'Belize and Guatemala under continued PRC debt restructuring outreach. Paraguay grooming ongoing.',sig:'w',src:'Gemini diplomatic report'},
+    ]},
+  mil:{status:'Moderate',trend:+1,conf:'High',
+    summary:'~210 sorties through Apr 23 — moderating from March peak. CCG Kinmen reduced to 2 incursions. 40-day Shanghai airspace closure (Mar 27–May 6): unprecedented duration and scope — no commercial disruption confirmed but significant pre-exercise signalling.',
+    subs:[
+      {name:'ADIZ sorties',obs:'~210 sorties through April 23 (avg 9–12/day). Annualising ~270–310/month — moderating from March\'s 340. Improvement from March above-baseline reading.',sig:'b',src:'Gemini military report'},
+      {name:'40-day Shanghai airspace closure',obs:'Five offshore zones closed Mar 27–May 6 (340 miles, Yellow Sea to East China Sea). INDSR researcher: "first time" closure is "so sudden, geographically extensive, prolonged, and poorly documented." No commercial disruption — airlines rerouting. Strongest pre-exercise signalling of the period.',sig:'w',src:'Washington Times Apr 8; Peninsula Qatar Apr 9'},
+      {name:'Chuan Yu No. 6 incident',obs:'Taiwanese fishing vessel caught fire near Diaoyutai Apr 17. CCG framed rescue as "emergency rescue of Chinese Taiwan fishing vessel" — sovereignty assertion via SAR operation. CGA condemned as "cognitive warfare and political maneuvering."',sig:'w',src:'Taipei Times Apr 19'},
+      {name:'CCG Kinmen',obs:'2 CCG incursions to date — reduced from March\'s 6. Possible tactical pause or partial data given Apr 23 cut-off.',sig:'b',src:'Gemini military report'},
+    ]},
+  cog:{status:'Moderate',trend:0,conf:'Moderate',
+    summary:'New CIB clusters post-Xi-Cheng meeting. Proxy amplification in Taiwanese media confirmed. Consistent with March pattern — no new spike above prior months. Election infrastructure building.',
+    subs:[
+      {name:'New CIB clusters',obs:'New clusters post-Xi-Cheng meeting focused on cross-strait integration narratives and framing PRC nationals\' illegal entries as "civilian exchanges."',sig:'w',src:'Gemini cognitive report'},
+      {name:'Proxy amplification',obs:'Confirmed Taiwanese media reporting on PRC nationals\' illegal entries mirroring PRC doctrinal narratives. Local proxy amplification continuing.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Cross-platform rollout',obs:'Simultaneous rollout of 10-point plan details across PRC state media, Taiwanese proxy outlets, and social networks.',sig:'w',src:'Gemini cognitive report'},
+      {name:'Reported impact',obs:'No new spike above March pattern. AI data scraping on legislators confirmed — election infrastructure building. No material opinion impact demonstrated.',sig:'w',src:'Framework application'},
+    ]},
+  all:{status:'Low',trend:0,conf:'High',
+    summary:'Arms package still on hold. Australia-Japan joint statement linked Taiwan Strait stability to their partnership. Post-Iran ceasefire may allow Indo-Pacific rebalancing. No allied activity spike approaching PRC retaliation threshold.',
+    subs:[
+      {name:'Arms package on hold',obs:'Trump-Xi summit moved to mid-May. $14B package on hold. Arms hold reduces near-term PRC retaliation trigger risk.',sig:'w',src:'Taipei Times Mar 14; synthesis'},
+      {name:'Australia-Japan statement',obs:'Apr 19: Australia-Japan Defence Ministers reaffirmed "peace and stability across the Taiwan Strait is essential." Australia confirmed US$14.25B frigate purchase from Japan. Regional signal below PRC immediate retaliation threshold.',sig:'b',src:'Gemini allied report'},
+      {name:'Post-Iran rebalancing',obs:'US-Iran ceasefire Apr 8 may allow carrier asset rebalancing toward Indo-Pacific. Modest positive future signal.',sig:'w',src:'Gemini allied report'},
+      {name:'Provocation threshold',obs:'No allied activity spike approaching PRC retaliation threshold. Post-summit arms announcement will be the key trigger to watch.',sig:'b',src:'Framework application'},
+    ]},
+  str:{status:'Low',trend:0,conf:'High',
+    summary:'Military moderating. New diplomatic and economic signals are isolated — no confirmed simultaneous multi-domain escalation within a 7–14 day window. Post-summit exercise risk is the primary forward convergence watchpoint.',
+    subs:[
+      {name:'Multi-domain spikes',obs:'Military moderating. Economic new legal architecture but not operational. Diplomatic overflight denial isolated. No confirmed 3-domain simultaneous spike within 7–14 day window.',sig:'b',src:'Synthesis'},
+      {name:'Election proximity',obs:'November 2026 elections 7 months out. KMT-PRC channel formalised. AI data scraping on legislators confirmed. Conditions for coordinated influence operation building.',sig:'w',src:'Synthesis'},
+      {name:'Post-summit exercise risk',obs:'Trump-Xi summit mid-May. Shanghai airspace closure (Mar 27–May 6) is potential pre-exercise staging. PRC historically uses post-summit window for escalatory signalling.',sig:'w',src:'Washington Times Apr 8; historical pattern'},
+      {name:'Tempo',obs:'Military tempo moderating. CCG Kinmen reduced. No acceleration across domains in April.',sig:'b',src:'Synthesis'},
+    ]},
+},
+};
+
+let activeM=MONTHS[MONTHS.length-1];
+let tlChart=null;
+let activeFilter='overall';
+
+function sc(s){return s==='Low'?'s-low':s==='Moderate'?'s-mod':'s-high';}
+function otcol(t){const m={'-3':'#8B1A1A','-2':'#C0392B','-1':'#E8847A','0':'#888780','1':'#7ECDC0','2':'#2AB5A5','3':'#1A7A6E'};return m[String(t)]||'#888780';}
+function tl(t){const m={'-3':'−3 Sig. deteriorating','-2':'−2 Deteriorating','-1':'−1 Disruptive','0':'No change','+1':'+1 Stabilizing','+2':'+2 Improving','+3':'+3 Sig. improving'};return m[t>=0?'+'+t:''+t]||t;}
+function tc(t){return t<0?'tn':t>0?'tp':'tf';}
+function ta(t){return t<=-2?'↓↓':t===-1?'↓':t===0?'→':t===1?'↑':'↑↑';}
+function sig(s){return s==='e'?'<span class="sig-e">elevated</span>':s==='w'?'<span class="sig-w">watch</span>':'<span class="sig-b">baseline</span>';}
+
+function renderTabs(){
+  document.getElementById('month-tabs').innerHTML=MONTHS.map(m=>
+    `<button class="mtab${m===activeM?' active':''}" onclick="setM('${m}')">${m}</button>`
+  ).join('');
+}
+
+function renderTable(){
+  const d=DATA[activeM];
+  document.getElementById('active-label').textContent=activeM;
+  document.getElementById('ind-tbody').innerHTML=INDS.map(ind=>{
+    const v=d[ind.id];
+    return `<tr class="row" onclick="openModal('${activeM}','${ind.id}')">
+      <td style="font-weight:500">${ind.name}</td>
+      <td><span class="badge ${sc(v.status)}">${v.status}</span></td>
+      <td><span class="tc ${tc(v.trend)}">${ta(v.trend)} ${tl(v.trend)}</span></td>
+      <td style="color:#5f5e5a;font-size:13px;line-height:1.5">${v.summary}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderWatchpoints(){
+  document.getElementById('watchpoints').innerHTML=WATCHPOINTS.map(w=>
+    `<div class="bi"><div class="bd"></div><div>${w}</div></div>`
+  ).join('');
+}
+
+function renderFilters(){
+  const filters=[{id:'overall',label:'Overall'},...INDS.map(i=>({id:i.id,label:i.short}))];
+  document.getElementById('chart-filters').innerHTML=filters.map(f=>
+    `<button class="ftab${f.id===activeFilter?' active':''}" onclick="setFilter('${f.id}')">${f.label}</button>`
+  ).join('');
+}
+
+function setFilter(id){
+  activeFilter=id;
+  renderFilters();
+  renderTimeline();
+}
+
+function getChartData(){
+  if(activeFilter==='overall'){
+    return {
+      data:OVERALL.map(o=>o.t),
+      colors:OVERALL.map(o=>otcol(o.t)),
+      tooltips:MONTHS.map((m,i)=>({
+        title:`${m} — Overall`,
+        trend:OVERALL[i].label,
+        summary:null
+      }))
+    };
+  }
+  const ind=INDS.find(i=>i.id===activeFilter);
+  return {
+    data:MONTHS.map(m=>DATA[m][activeFilter].trend),
+    colors:MONTHS.map(m=>otcol(DATA[m][activeFilter].trend)),
+    tooltips:MONTHS.map(m=>({
+      title:`${m} — ${ind.name}`,
+      trend:tl(DATA[m][activeFilter].trend),
+      summary:DATA[m][activeFilter].summary
+    }))
+  };
+}
+
+function renderTimeline(){
+  if(tlChart)tlChart.destroy();
+  const cd=getChartData();
+  tlChart=new Chart(document.getElementById('tlChart'),{
+    type:'line',
+    data:{
+      labels:MONTHS,
+      datasets:[{
+        label:'Trend',
+        data:cd.data,
+        borderColor:'rgba(100,100,95,0.25)',
+        borderWidth:2,tension:0.3,fill:false,
+        pointRadius:7,pointHoverRadius:10,
+        pointBackgroundColor:cd.colors,
+        pointBorderColor:cd.colors.map(c=>c+'33'),
+        pointBorderWidth:3,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      scales:{
+        x:{
+          grid:{color:'rgba(0,0,0,0.06)'},
+          ticks:{color:'#888780',font:{size:12}},
+          border:{color:'rgba(0,0,0,0.06)'}
+        },
+        y:{
+          min:-3,max:3,
+          grid:{color:'rgba(0,0,0,0.06)'},
+          ticks:{color:'#888780',font:{size:11},stepSize:1,
+            callback:v=>{
+              const m={'-3':'−3 Sig. deteriorating','-2':'−2 Deteriorating','-1':'−1 Disruptive','0':'No change','1':'+1 Stabilizing','2':'+2 Improving','3':'+3 Sig. improving'};
+              return m[String(v)]||'';
+            }
+          },
+          border:{color:'rgba(0,0,0,0.06)'}
+        }
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:i=>cd.tooltips[i[0].dataIndex].title,
+            label:i=>{
+              const tt=cd.tooltips[i.dataIndex];
+              const lines=[tt.trend];
+              if(tt.summary){
+                const words=tt.summary.split(' ');
+                let line='';
+                words.forEach(w=>{
+                  if((line+' '+w).length>60){lines.push(line.trim());line=w;}
+                  else{line+=(line?' ':'')+w;}
+                });
+                if(line)lines.push(line.trim());
+              }
+              lines.push('');
+        
+              return lines;
+            }
+          },
+          backgroundColor:'#fff',
+          titleColor:'#1a1a18',
+          bodyColor:'#5f5e5a',
+          borderColor:'rgba(0,0,0,0.1)',
+          borderWidth:1,
+          padding:12,
+          boxPadding:4,
+        }
+      },
+
+    }
+  });
+}
+
+function openMonthModal(month){
+  const d=DATA[month];
+  const ov=OVERALL[MONTHS.indexOf(month)];
+  document.getElementById('modal-title').textContent=`Full breakdown — ${month}`;
+  document.getElementById('modal-meta').innerHTML=`Overall trend: <strong style="color:${otcol(ov.t)}">${ov.label}</strong> &nbsp;<span style="font-size:11px;color:#aaa">(provisional)</span>`;
+  document.getElementById('modal-body').innerHTML=INDS.map(ind=>{
+    const v=d[ind.id];
+    return `<div class="srow">
+      <div class="srow-name">${ind.name} &nbsp;<span class="badge ${sc(v.status)}">${v.status}</span>&nbsp;<span class="${tc(v.trend)}" style="font-size:12px;font-weight:500">${ta(v.trend)} ${tl(v.trend)}</span></div>
+      <div class="srow-obs">${v.summary}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function openModal(month,indId){
+  const ind=INDS.find(i=>i.id===indId);
+  const v=DATA[month][indId];
+  document.getElementById('modal-title').textContent=ind.name;
+  document.getElementById('modal-meta').innerHTML=
+    `${month} &nbsp;·&nbsp; <span class="badge ${sc(v.status)}">${v.status}</span> &nbsp;·&nbsp; <span class="${tc(v.trend)}">${ta(v.trend)} ${tl(v.trend)}</span> <span class="conf-pill">confidence: ${v.conf}</span>`;
+  document.getElementById('modal-body').innerHTML=`
+    <div class="fn"><strong>Scoring note:</strong> Status = severity of sub-indicator signals. Trend = deviation from established baseline, not absolute level. Impact and reported effects weighted over tactics and infrastructure alone.</div>
+    <div class="mo-summary">${v.summary}</div>
+    <div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#888780;margin-bottom:.5rem">Sub-indicator breakdown</div>
+    ${v.subs.map(s=>`<div class="srow">
+      <div class="srow-name">${s.name}</div>
+      <div class="srow-obs">${s.obs}</div>
+      <div class="srow-src">Sources: ${s.src}</div>
+    </div>`).join('')}
+    <div class="src-block"><strong>Primary sources:</strong> ISW-AEI China &amp; Taiwan Update (Jan–Apr 2026) · Taiwan NSB Cognitive Warfare Report · Gemini cross-validated data · Focus Taiwan / CNA · Taipei Times · The Diplomat · Global Taiwan Institute · Foreign Policy · Washington Times · The Hill</div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+document.getElementById('modal-overlay').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+
+function setM(m){
+  activeM=m;
+  renderTabs();
+  renderTable();
+}
+
+renderTabs();
+renderTable();
+renderWatchpoints();
+renderFilters();
+renderTimeline();
+</script>
+</body>
+</html>
